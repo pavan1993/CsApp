@@ -30,7 +30,7 @@ router.get('/dashboard', async (req, res) => {
     });
 
     // Get total interactions
-    const totalInteractions = await prisma.interaction.count();
+    const totalInteractions = await prisma.customerInteraction.count();
 
     // Calculate churn rate (mock data for now)
     const churnRate = 2.1;
