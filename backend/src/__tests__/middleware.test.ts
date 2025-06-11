@@ -1,5 +1,5 @@
 import request from 'supertest';
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import { errorHandler, createError, asyncHandler } from '../middleware/errorHandler';
 
 const createTestApp = () => {
@@ -12,7 +12,7 @@ const createTestApp = () => {
   });
 
   // Test route with async error
-  app.get('/test-async-error', asyncHandler(async (req, res, next) => {
+  app.get('/test-async-error', asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     throw new Error('Async test error');
   }));
 
