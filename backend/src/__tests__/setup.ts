@@ -4,6 +4,16 @@ import { PrismaClient } from '@prisma/client';
 process.env.NODE_ENV = 'test';
 process.env.PORT = '5002'; // Use different port for tests
 
+// Suppress console.error during tests to reduce noise
+const originalConsoleError = console.error;
+beforeAll(() => {
+  console.error = jest.fn();
+});
+
+afterAll(() => {
+  console.error = originalConsoleError;
+});
+
 // Test database setup
 const prisma = new PrismaClient({
   datasources: {
