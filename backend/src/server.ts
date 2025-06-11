@@ -16,7 +16,7 @@ import usageRoutes from './routes/usage';
 
 // Initialize Express app
 const app = express();
-const PORT = config.port;
+const PORT = process.env.NODE_ENV === 'test' ? 0 : config.port;
 
 // Initialize database connection
 export const prisma = connectDatabase();
@@ -56,9 +56,11 @@ app.use('*', (req: express.Request, res: express.Response) => {
 
 // Start server
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Customer Success Analytics API`);
-  console.log(`🌍 Environment: ${config.nodeEnv}`);
+  if (process.env.NODE_ENV !== 'test') {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📊 Customer Success Analytics API`);
+    console.log(`🌍 Environment: ${config.nodeEnv}`);
+  }
 });
 
 // Export app for testing

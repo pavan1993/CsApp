@@ -22,6 +22,14 @@ const upload = multer({
   },
 });
 
+// Error handler for multer
+const handleMulterError = (err: any, req: any, res: any, next: any) => {
+  if (err instanceof multer.MulterError || err.message === 'Only CSV files are allowed') {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
+};
+
 interface TicketCSVRow {
   ID: string;
   Status: string;
@@ -110,7 +118,7 @@ function validateTicketRow(row: TicketCSVRow): string[] {
 }
 
 // POST /api/tickets/upload - Parse support tickets CSV
-router.post('/upload', upload.single('file'), async (req, res) => {
+router.post('/upload', upload.single('file'), handleMulterError, async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });

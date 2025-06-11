@@ -1,5 +1,5 @@
 import request from 'supertest';
-import { app } from '../server';
+import { app, server } from '../server';
 import { prisma } from '../server';
 
 describe('Usage API', () => {
@@ -13,6 +13,7 @@ describe('Usage API', () => {
   afterAll(async () => {
     await prisma.dynatraceUsage.deleteMany({});
     await prisma.$disconnect();
+    server.close();
   });
 
   describe('GET /api/usage/check-upload-eligibility/:organization', () => {
@@ -152,7 +153,7 @@ New Capability,2000.00,200.00`;
         where: { organization: testOrganization }
       });
       expect(remainingData).toHaveLength(1);
-      expect(remainingData[0].capability).toBe('New Capability');
+      expect(remainingData[0]?.capability).toBe('New Capability');
     });
 
     it('should reject file with invalid numeric values', async () => {
