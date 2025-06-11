@@ -38,16 +38,29 @@ interface TicketCSVRow {
 
 // Helper function to parse date in MM/DD/YYYY HH:MM format
 function parseDate(dateString: string): Date {
+  if (!dateString || typeof dateString !== 'string') {
+    throw new Error('Invalid date string');
+  }
+  
   const [datePart, timePart] = dateString.split(' ');
+  
+  if (!datePart) {
+    throw new Error('Invalid date format');
+  }
+  
   const [month, day, year] = datePart.split('/');
   const [hours, minutes] = timePart ? timePart.split(':') : ['00', '00'];
   
+  if (!month || !day || !year) {
+    throw new Error('Invalid date format');
+  }
+  
   return new Date(
-    parseInt(year),
-    parseInt(month) - 1, // Month is 0-indexed
-    parseInt(day),
-    parseInt(hours),
-    parseInt(minutes)
+    parseInt(year, 10),
+    parseInt(month, 10) - 1, // Month is 0-indexed
+    parseInt(day, 10),
+    parseInt(hours || '0', 10),
+    parseInt(minutes || '0', 10)
   );
 }
 
@@ -74,7 +87,8 @@ function validateTicketRow(row: TicketCSVRow): string[] {
   const requiredFields = ['ID', 'Status', 'Requested', 'Organization', 'Subject', 'Updated', 'Requester', 'Product Area', 'Reason for Contact'];
   
   for (const field of requiredFields) {
-    if (!row[field as keyof TicketCSVRow] || row[field as keyof TicketCSVRow].trim() === '') {
+    const value = row[field as keyof TicketCSVRow];
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
       errors.push(`Missing required field: ${field}`);
     }
   }
@@ -170,7 +184,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Tickets uploaded successfully',
       inserted: insertedTickets.length,
       data: insertedTickets
@@ -178,7 +192,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
   } catch (error: any) {
     console.error('Ticket upload error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to process ticket upload',
       details: error.message
     });
