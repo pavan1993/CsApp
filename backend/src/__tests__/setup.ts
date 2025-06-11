@@ -1,5 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 
+// Set test environment
+process.env.NODE_ENV = 'test';
+process.env.PORT = '5002'; // Use different port for tests
+
 // Test database setup
 const prisma = new PrismaClient({
   datasources: {

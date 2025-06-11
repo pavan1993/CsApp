@@ -1,10 +1,17 @@
 import request from 'supertest';
-import { app, server } from '../server';
+import express from 'express';
+import healthRoutes from '../routes/health';
+
+// Create test app for health routes
+const createTestApp = () => {
+  const app = express();
+  app.use(express.json());
+  app.use('/api/health', healthRoutes);
+  return app;
+};
 
 describe('Health Check Endpoints', () => {
-  afterAll((done) => {
-    server.close(done);
-  });
+  const app = createTestApp();
 
   describe('GET /api/health', () => {
     it('should return health status', async () => {

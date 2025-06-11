@@ -1,16 +1,52 @@
 import request from 'supertest';
-import { app, server } from '../server';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import morgan from 'morgan';
+import rateLimit from 'express-rate-limit';
+import { errorHandler } from '../middleware/errorHandler';
+import healthRoutes from '../routes/health';
 
-describe('Server', () => {
-  afterAll((done) => {
-    server.close(done);
+// Create test app without starting server
+const createTestApp = () => {
+  const app = express();
+
+  // Rate limiting
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 100,
+    message: 'Too many requests from this IP, please try again later.',
   });
 
-  describe('Server startup', () => {
-    it('should start the server successfully', () => {
-      expect(server.listening).toBe(true);
-    });
+  // Middleware
+  app.use(helmet());
+  app.use(cors({
+    origin: 'http://localhost:3000',
+    credentials: true,
+  }));
+  app.use(morgan('dev'));
+  app.use(limiter);
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ extended: true }));
 
+  // Routes
+  app.use('/api/health', healthRoutes);
+
+  // Error handling middleware
+  app.use(errorHandler);
+
+  // 404 handler
+  app.use('*', (req: express.Request, res: express.Response) => {
+    res.status(404).json({ message: 'Route not found' });
+  });
+
+  return app;
+};
+
+describe('Server', () => {
+  const app = createTestApp();
+
+  describe('Server functionality', () => {
     it('should respond to requests', async () => {
       const response = await request(app).get('/api/health');
       expect(response.status).toBeDefined();

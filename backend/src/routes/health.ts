@@ -1,5 +1,5 @@
 import express from 'express';
-import { prisma } from '../server';
+import { connectDatabase } from '../config/database';
 
 const router = express.Router();
 
@@ -7,6 +7,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     // Check database connection
+    const prisma = connectDatabase();
     await prisma.$queryRaw`SELECT 1`;
     
     res.json({
@@ -41,6 +42,7 @@ router.get('/detailed', async (req, res) => {
 
   try {
     // Check database connection
+    const prisma = connectDatabase();
     await prisma.$queryRaw`SELECT 1`;
     healthCheck.database = 'connected';
     
