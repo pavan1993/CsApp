@@ -63,7 +63,7 @@ function validateUsageRow(row: UsageCSVRow): string[] {
 }
 
 // GET /api/usage/check-upload-eligibility/:organization - Validate upload timing
-router.get('/check-upload-eligibility/:organization', async (req, res) => {
+router.get('/check-upload-eligibility/:organization', async (req: express.Request, res: express.Response) => {
   try {
     const { organization } = req.params;
     
@@ -112,7 +112,7 @@ router.get('/check-upload-eligibility/:organization', async (req, res) => {
 });
 
 // POST /api/usage/upload - Parse Dynatrace usage CSV with 30-day validation
-router.post('/upload', upload.single('file'), handleMulterError, async (req, res) => {
+router.post('/upload', upload.single('file'), handleMulterError, async (req: express.Request, res: express.Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });

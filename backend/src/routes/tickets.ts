@@ -118,7 +118,7 @@ function validateTicketRow(row: TicketCSVRow): string[] {
 }
 
 // POST /api/tickets/upload - Parse support tickets CSV
-router.post('/upload', upload.single('file'), handleMulterError, async (req, res) => {
+router.post('/upload', upload.single('file'), handleMulterError, async (req: express.Request, res: express.Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
