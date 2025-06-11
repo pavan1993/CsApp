@@ -5,16 +5,28 @@
   "scripts": {
     "dev:frontend": "cd frontend && npm run dev",
     "dev:backend": "cd backend && npm run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
     "build:frontend": "cd frontend && npm run build",
     "build:backend": "cd backend && npm run build",
+    "build": "npm run build:backend && npm run build:frontend",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "db:generate": "cd backend && npx prisma generate",
     "db:migrate": "cd backend && npx prisma migrate dev",
     "db:studio": "cd backend && npx prisma studio",
     "db:seed": "cd backend && npm run db:seed",
-    "test:integration": "cd backend && npm run test:integration"
+    "db:reset": "cd backend && npx prisma migrate reset",
+    "test": "cd backend && npm test",
+    "test:watch": "cd backend && npm run test:watch",
+    "test:coverage": "cd backend && npm run test:coverage",
+    "test:integration": "cd backend && npm run test:integration",
+    "start": "cd backend && npm start",
+    "lint": "cd backend && npm run lint && cd ../frontend && npm run lint",
+    "clean": "rm -rf backend/dist frontend/dist backend/node_modules frontend/node_modules node_modules"
   },
   "keywords": ["customer-success", "analytics", "react", "nodejs", "postgresql"],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  }
 }
