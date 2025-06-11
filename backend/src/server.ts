@@ -11,6 +11,8 @@ import { errorHandler } from './middleware/errorHandler';
 import customerRoutes from './routes/customers';
 import analyticsRoutes from './routes/analytics';
 import healthRoutes from './routes/health';
+import ticketRoutes from './routes/tickets';
+import usageRoutes from './routes/usage';
 
 // Initialize Express app
 const app = express();
@@ -41,6 +43,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/health', healthRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/tickets', ticketRoutes);
+app.use('/api/usage', usageRoutes);
 
 // Error handling middleware
 app.use(errorHandler);

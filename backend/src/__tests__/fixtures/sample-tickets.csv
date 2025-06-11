@@ -1,0 +1,6 @@
+ID,Status,Requested,Organization,Subject,Updated,Assignee,Requester,Product Area,Reason for Contact,Severity
+TICKET-001,Open,01/15/2024 10:30,Acme Corporation,Login authentication failure,01/15/2024 11:00,john.doe@acme.com,jane.smith@acme.com,Authentication,Bug Report,CRITICAL
+TICKET-002,In Progress,01/16/2024 14:20,Acme Corporation,Dashboard loading slowly,01/17/2024 09:15,alice.johnson@acme.com,bob.wilson@acme.com,Dashboard,Performance Issue,SEVERE
+TICKET-003,Closed,01/18/2024 08:45,Beta Corp,Feature request for new charts,01/20/2024 16:30,charlie.brown@beta.com,diana.prince@beta.com,Analytics,Enhancement,MODERATE
+TICKET-004,Open,01/19/2024 13:15,Gamma Inc,User permissions not working,01/19/2024 13:45,,eve.adams@gamma.com,User Management,Bug Report,LOW
+TICKET-005,Resolved,01/20/2024 11:00,Acme Corporation,Export functionality broken,01/22/2024 10:30,frank.miller@acme.com,grace.hopper@acme.com,Reports,Bug Report,SEVERE
