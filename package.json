@@ -11,7 +11,8 @@
     "db:generate": "cd backend && npx prisma generate",
     "db:migrate": "cd backend && npx prisma migrate dev",
     "db:studio": "cd backend && npx prisma studio",
-    "db:seed": "cd backend && npm run db:seed"
+    "db:seed": "cd backend && npm run db:seed",
+    "test:integration": "cd backend && npm run test:integration"
   },
   "keywords": ["customer-success", "analytics", "react", "nodejs", "postgresql"],
   "author": "",
