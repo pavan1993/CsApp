@@ -156,7 +156,6 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       try {
         const ticket = await prisma.supportTicket.create({
           data: {
-            id: row.ID,
             status: row.Status,
             requested: parseDate(row.Requested),
             organization: row.Organization,
@@ -171,7 +170,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
         });
         insertedTickets.push(ticket);
       } catch (dbError: any) {
-        errors.push(`Failed to insert ticket ${row.ID}: ${dbError.message}`);
+        errors.push(`Failed to insert ticket for ${row.Subject}: ${dbError.message}`);
       }
     }
 
