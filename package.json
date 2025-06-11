@@ -10,7 +10,8 @@
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "db:generate": "cd backend && npx prisma generate",
     "db:migrate": "cd backend && npx prisma migrate dev",
-    "db:studio": "cd backend && npx prisma studio"
+    "db:studio": "cd backend && npx prisma studio",
+    "db:seed": "cd backend && npm run db:seed"
   },
   "keywords": ["customer-success", "analytics", "react", "nodejs", "postgresql"],
   "author": "",
