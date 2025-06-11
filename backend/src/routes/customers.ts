@@ -1,7 +1,9 @@
 import express, { Request, Response } from 'express';
 import { body, validationResult } from 'express-validator';
-import { prisma } from '../server';
+import { connectDatabase } from '../config/database';
 import { asyncHandler } from '../middleware/errorHandler';
+
+const prisma = connectDatabase();
 
 const router = express.Router();
 
@@ -43,7 +45,7 @@ router.get('/:id', asyncHandler(async (req: Request, res: Response) => {
     });
   }
 
-  res.json({
+  return res.json({
     success: true,
     data: customer,
   });
@@ -77,7 +79,7 @@ router.post('/',
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       data: customer,
       message: 'Customer created successfully',
