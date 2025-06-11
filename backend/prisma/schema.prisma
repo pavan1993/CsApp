@@ -113,6 +113,34 @@ model TechnicalDebtAnalysis {
   @@map("technical_debt_analysis")
 }
 
+model Customer {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  company      String
+  healthScore  Int      @default(5)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  interactions CustomerInteraction[]
+
+  @@map("customers")
+}
+
+model CustomerInteraction {
+  id         String   @id @default(cuid())
+  customerId String   @map("customer_id")
+  type       String
+  notes      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_interactions")
+}
+
 enum TicketSeverity {
   CRITICAL
   SEVERE
