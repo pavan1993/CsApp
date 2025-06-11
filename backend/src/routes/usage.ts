@@ -33,7 +33,8 @@ function validateUsageRow(row: UsageCSVRow): string[] {
   const requiredFields = ['Capability', 'Annual budget-to-date cost (USD)', 'Last 0-30 days cost (USD)'];
   
   for (const field of requiredFields) {
-    if (!row[field as keyof UsageCSVRow] || row[field as keyof UsageCSVRow].trim() === '') {
+    const value = row[field as keyof UsageCSVRow];
+    if (!value || (typeof value === 'string' && value.trim() === '')) {
       errors.push(`Missing required field: ${field}`);
     }
   }
@@ -84,7 +85,7 @@ router.get('/check-upload-eligibility/:organization', async (req, res) => {
 
     const eligible = daysSinceLastUpload >= 30;
 
-    res.json({
+    return res.json({
       eligible,
       message: eligible 
         ? 'Upload is allowed' 
@@ -95,7 +96,7 @@ router.get('/check-upload-eligibility/:organization', async (req, res) => {
 
   } catch (error: any) {
     console.error('Upload eligibility check error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to check upload eligibility',
       details: error.message
     });
@@ -214,7 +215,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
       });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       message: 'Usage data uploaded successfully',
       inserted: insertedUsage.length,
       organization,
@@ -224,7 +225,7 @@ router.post('/upload', upload.single('file'), async (req, res) => {
 
   } catch (error: any) {
     console.error('Usage upload error:', error);
-    res.status(500).json({
+    return res.status(500).json({
       error: 'Failed to process usage upload',
       details: error.message
     });
