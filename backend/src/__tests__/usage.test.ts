@@ -167,7 +167,7 @@ Test Capability,invalid-number,200.00`;
         .expect(400);
 
       expect(response.body.error).toBe('CSV validation failed');
-      expect(response.body.details).toContain('Invalid Annual budget-to-date cost (USD) - must be a number');
+      expect(response.body.details[0]).toContain('Invalid Annual budget-to-date cost (USD) - must be a number');
     });
 
     it('should return 400 when organization is missing', async () => {

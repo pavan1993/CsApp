@@ -60,7 +60,7 @@ TICKET-001,Open,invalid-date,Acme Corp,Login Issue,01/15/2024 11:00,john.doe,jan
       const response = await request(app)
         .post('/api/tickets/upload')
         .attach('file', Buffer.from('not a csv'), 'file.txt')
-        .expect(500);
+        .expect(400);
 
       expect(response.body.error).toContain('Only CSV files are allowed');
     });
