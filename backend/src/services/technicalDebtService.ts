@@ -212,8 +212,12 @@ export class TechnicalDebtService {
       take: 1
     });
 
-    const currentUsage = currentUsageData[0]?.last30DaysCost.toNumber() || 0;
-    const previousUsage = previousUsageData[0]?.last30DaysCost.toNumber() || 0;
+    const currentUsage = typeof currentUsageData[0]?.last30DaysCost === 'object' 
+      ? currentUsageData[0]?.last30DaysCost.toNumber() || 0
+      : currentUsageData[0]?.last30DaysCost || 0;
+    const previousUsage = typeof previousUsageData[0]?.last30DaysCost === 'object'
+      ? previousUsageData[0]?.last30DaysCost.toNumber() || 0
+      : previousUsageData[0]?.last30DaysCost || 0;
 
     let usageDropPercentage = 0;
     if (previousUsage > 0) {
