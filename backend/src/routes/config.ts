@@ -90,7 +90,7 @@ router.post('/mapping/:organization', async (req, res, next) => {
       success: true,
       data: mapping
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2002') {
       next(new AppError('Mapping already exists for this product area and capability combination', 409));
     } else {
@@ -134,18 +134,20 @@ router.put('/mapping/:organization/:id', async (req, res, next) => {
     }
 
     const mapping = await prisma.productAreaMapping.update({
-      where: { 
-        id,
-        organization 
-      },
+      where: { id },
       data: updateData
     });
+
+    // Verify the mapping belongs to the organization
+    if (mapping.organization !== organization) {
+      throw new AppError('Mapping not found', 404);
+    }
 
     res.json({
       success: true,
       data: mapping
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2025') {
       next(new AppError('Mapping not found', 404));
     } else if (error.code === 'P2002') {
@@ -166,18 +168,23 @@ router.delete('/mapping/:organization/:id', async (req, res, next) => {
       throw new AppError('Mapping ID is required', 400);
     }
 
+    const mapping = await prisma.productAreaMapping.findUnique({
+      where: { id }
+    });
+
+    if (!mapping || mapping.organization !== organization) {
+      throw new AppError('Mapping not found', 404);
+    }
+
     await prisma.productAreaMapping.delete({
-      where: { 
-        id,
-        organization 
-      }
+      where: { id }
     });
 
     res.json({
       success: true,
       message: 'Mapping deleted successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2025') {
       next(new AppError('Mapping not found', 404));
     } else {
@@ -244,7 +251,7 @@ router.post('/thresholds/:organization', async (req, res, next) => {
       success: true,
       data: threshold
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2002') {
       next(new AppError('Threshold configuration already exists for this product area and severity level', 409));
     } else {
@@ -288,18 +295,20 @@ router.put('/thresholds/:organization/:id', async (req, res, next) => {
     }
 
     const threshold = await prisma.thresholdConfiguration.update({
-      where: { 
-        id,
-        organization 
-      },
+      where: { id },
       data: updateData
     });
+
+    // Verify the threshold belongs to the organization
+    if (threshold.organization !== organization) {
+      throw new AppError('Threshold configuration not found', 404);
+    }
 
     res.json({
       success: true,
       data: threshold
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2025') {
       next(new AppError('Threshold configuration not found', 404));
     } else if (error.code === 'P2002') {
@@ -320,18 +329,23 @@ router.delete('/thresholds/:organization/:id', async (req, res, next) => {
       throw new AppError('Threshold ID is required', 400);
     }
 
+    const threshold = await prisma.thresholdConfiguration.findUnique({
+      where: { id }
+    });
+
+    if (!threshold || threshold.organization !== organization) {
+      throw new AppError('Threshold configuration not found', 404);
+    }
+
     await prisma.thresholdConfiguration.delete({
-      where: { 
-        id,
-        organization 
-      }
+      where: { id }
     });
 
     res.json({
       success: true,
       message: 'Threshold configuration deleted successfully'
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2025') {
       next(new AppError('Threshold configuration not found', 404));
     } else {
@@ -384,19 +398,21 @@ router.post('/key-modules/:organization', async (req, res, next) => {
     }
 
     const mapping = await prisma.productAreaMapping.update({
-      where: { 
-        id: mappingId,
-        organization 
-      },
+      where: { id: mappingId },
       data: { isKeyModule }
     });
+
+    // Verify the mapping belongs to the organization
+    if (mapping.organization !== organization) {
+      throw new AppError('Mapping not found', 404);
+    }
 
     res.json({
       success: true,
       data: mapping,
       message: `Module ${isKeyModule ? 'marked as' : 'removed from'} key module`
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2025') {
       next(new AppError('Mapping not found', 404));
     } else {
@@ -422,19 +438,21 @@ router.put('/key-modules/:organization/:id', async (req, res, next) => {
     }
 
     const mapping = await prisma.productAreaMapping.update({
-      where: { 
-        id,
-        organization 
-      },
+      where: { id },
       data: { isKeyModule }
     });
+
+    // Verify the mapping belongs to the organization
+    if (mapping.organization !== organization) {
+      throw new AppError('Mapping not found', 404);
+    }
 
     res.json({
       success: true,
       data: mapping,
       message: `Module ${isKeyModule ? 'marked as' : 'removed from'} key module`
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.code === 'P2025') {
       next(new AppError('Mapping not found', 404));
     } else {
