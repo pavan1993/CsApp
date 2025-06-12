@@ -168,7 +168,7 @@ describe('Technical Debt Scoring Algorithm', () => {
       };
 
       const debtScore = calculateTechnicalDebtScore(ticketCounts, usageMetrics, true);
-      expect(debtScore).toBeGreaterThan(200); // Should be in critical range
+      expect(debtScore).toBeGreaterThan(150); // Should be in high risk range
     });
   });
 

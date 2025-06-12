@@ -22,7 +22,25 @@ jest.mock('../server', () => ({
   },
 }));
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+const mockPrisma = {
+  supportTicket: {
+    groupBy: jest.fn(),
+  },
+  dynatraceUsage: {
+    findMany: jest.fn(),
+  },
+  productAreaMapping: {
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+  },
+  technicalDebtAnalysis: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+  },
+} as any;
+
+// Replace the actual prisma import with our mock
+(prisma as any) = mockPrisma;
 
 describe('TechnicalDebtService', () => {
   let service: TechnicalDebtService;
@@ -143,8 +161,8 @@ describe('TechnicalDebtService', () => {
       const results = await service.calculateOrganizationTechnicalDebt('test-org');
 
       expect(results).toHaveLength(2);
-      expect(results[0].productArea).toBe('area1');
-      expect(results[1].productArea).toBe('area2');
+      expect(results[0]?.productArea).toBe('area1');
+      expect(results[1]?.productArea).toBe('area2');
     });
 
     it('should handle errors gracefully', async () => {
@@ -165,7 +183,7 @@ describe('TechnicalDebtService', () => {
 
       // Should only return successful results
       expect(results).toHaveLength(1);
-      expect(results[0].productArea).toBe('area1');
+      expect(results[0]?.productArea).toBe('area1');
     });
   });
 
