@@ -2,26 +2,28 @@ import { TechnicalDebtService } from '../services/technicalDebtService';
 import { TicketSeverity } from '@prisma/client';
 
 // Mock the entire server module
-const mockPrisma = {
-  supportTicket: {
-    groupBy: jest.fn(),
-  },
-  dynatraceUsage: {
-    findMany: jest.fn(),
-  },
-  productAreaMapping: {
-    findFirst: jest.fn(),
-    findMany: jest.fn(),
-  },
-  technicalDebtAnalysis: {
-    create: jest.fn(),
-    findMany: jest.fn(),
-  },
-};
-
 jest.mock('../server', () => ({
-  prisma: mockPrisma,
+  prisma: {
+    supportTicket: {
+      groupBy: jest.fn(),
+    },
+    dynatraceUsage: {
+      findMany: jest.fn(),
+    },
+    productAreaMapping: {
+      findFirst: jest.fn(),
+      findMany: jest.fn(),
+    },
+    technicalDebtAnalysis: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+    },
+  },
 }));
+
+// Import the mocked prisma after the mock is set up
+import { prisma } from '../server';
+const mockPrisma = prisma as jest.Mocked<typeof prisma>;
 
 describe('TechnicalDebtService', () => {
   let service: TechnicalDebtService;
