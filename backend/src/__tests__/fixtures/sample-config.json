@@ -1,0 +1,111 @@
+{
+  "productAreaMappings": [
+    {
+      "productArea": "Authentication",
+      "dynatraceCapability": "User Authentication Service",
+      "organization": "test-org",
+      "isKeyModule": true
+    },
+    {
+      "productArea": "Payment Processing",
+      "dynatraceCapability": "Payment Gateway",
+      "organization": "test-org",
+      "isKeyModule": true
+    },
+    {
+      "productArea": "User Management",
+      "dynatraceCapability": "User Profile Service",
+      "organization": "test-org",
+      "isKeyModule": false
+    },
+    {
+      "productArea": "Reporting",
+      "dynatraceCapability": "Analytics Engine",
+      "organization": "test-org",
+      "isKeyModule": false
+    },
+    {
+      "productArea": "Authentication",
+      "dynatraceCapability": "OAuth Service",
+      "organization": "test-org",
+      "isKeyModule": false
+    }
+  ],
+  "thresholdConfigurations": [
+    {
+      "organization": "test-org",
+      "productArea": "Authentication",
+      "severityLevel": "CRITICAL",
+      "ticketThreshold": 5,
+      "usageDropThreshold": 20.0
+    },
+    {
+      "organization": "test-org",
+      "productArea": "Authentication",
+      "severityLevel": "SEVERE",
+      "ticketThreshold": 10,
+      "usageDropThreshold": 15.0
+    },
+    {
+      "organization": "test-org",
+      "productArea": "Payment Processing",
+      "severityLevel": "CRITICAL",
+      "ticketThreshold": 3,
+      "usageDropThreshold": 25.0
+    },
+    {
+      "organization": "test-org",
+      "productArea": "User Management",
+      "severityLevel": "MODERATE",
+      "ticketThreshold": 15,
+      "usageDropThreshold": 10.0
+    }
+  ],
+  "invalidMappings": [
+    {
+      "productArea": "",
+      "dynatraceCapability": "Test Capability",
+      "organization": "test-org"
+    },
+    {
+      "productArea": "Test Area",
+      "dynatraceCapability": "",
+      "organization": "test-org"
+    },
+    {
+      "productArea": "Test Area",
+      "dynatraceCapability": "Test Capability",
+      "organization": ""
+    }
+  ],
+  "invalidThresholds": [
+    {
+      "organization": "test-org",
+      "productArea": "",
+      "severityLevel": "CRITICAL",
+      "ticketThreshold": 5,
+      "usageDropThreshold": 20.0
+    },
+    {
+      "organization": "test-org",
+      "productArea": "Test Area",
+      "severityLevel": "INVALID",
+      "ticketThreshold": 5,
+      "usageDropThreshold": 20.0
+    },
+    {
+      "organization": "test-org",
+      "productArea": "Test Area",
+      "severityLevel": "CRITICAL",
+      "ticketThreshold": -1,
+      "usageDropThreshold": 20.0
+    },
+    {
+      "organization": "test-org",
+      "productArea": "Test Area",
+      "severityLevel": "CRITICAL",
+      "ticketThreshold": 5,
+      "usageDropThreshold": 150.0
+    }
+  ]
+}
