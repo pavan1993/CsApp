@@ -515,9 +515,9 @@ describe('Configuration API', () => {
         .get('/api/config/mapping/')
         .expect(404);
 
-      // Test with empty organization parameter in URL
+      // Test with whitespace-only organization parameter
       await request(app)
-        .get('/api/config/mapping/ ')
+        .get('/api/config/mapping/%20')
         .expect(400);
     });
 

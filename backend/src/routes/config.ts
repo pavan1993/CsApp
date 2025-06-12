@@ -20,7 +20,7 @@ const prisma = connectDatabase();
 
 // Validation helpers
 function validateOrganization(organization: string): void {
-  if (!organization || typeof organization !== 'string' || organization.trim() === '') {
+  if (!organization || typeof organization !== 'string' || organization.trim() === '' || organization.trim() === ' ') {
     throw new AppError('Organization parameter is required', 400);
   }
 }
