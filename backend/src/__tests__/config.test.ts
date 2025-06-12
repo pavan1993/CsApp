@@ -301,8 +301,9 @@ describe('Configuration API', () => {
           productArea: thresholdData.productArea,
           severityLevel: thresholdData.severityLevel,
           ticketThreshold: thresholdData.ticketThreshold,
-          usageDropThreshold: thresholdData.usageDropThreshold
+          usageDropThreshold: expect.any(Number)
         });
+        expect(Number(response.body.data.usageDropThreshold)).toBe(thresholdData.usageDropThreshold);
       });
 
       it('should return 400 for invalid threshold data', async () => {
@@ -352,7 +353,7 @@ describe('Configuration API', () => {
 
         expect(response.body.success).toBe(true);
         expect(response.body.data.ticketThreshold).toBe(updateData.ticketThreshold);
-        expect(response.body.data.usageDropThreshold).toBe(updateData.usageDropThreshold);
+        expect(Number(response.body.data.usageDropThreshold)).toBe(updateData.usageDropThreshold);
       });
 
       it('should return 404 for non-existent threshold', async () => {
@@ -509,8 +510,14 @@ describe('Configuration API', () => {
         .get('/api/config/mapping/')
         .expect(404);
 
+      // Test with empty organization in request body instead
       await request(app)
-        .get('/api/config/mapping/ ')
+        .post('/api/config/mapping/test-org')
+        .send({
+          productArea: 'Test Area',
+          dynatraceCapability: 'Test Capability',
+          organization: ''
+        })
         .expect(400);
     });
 

@@ -56,14 +56,15 @@ app.use('*', (req: express.Request, res: express.Response) => {
   res.status(404).json({ message: 'Route not found' });
 });
 
-// Start server
-const server = app.listen(PORT, () => {
-  if (process.env.NODE_ENV !== 'test') {
+// Start server only if not in test environment
+let server: any = null;
+if (process.env.NODE_ENV !== 'test') {
+  server = app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Customer Success Analytics API`);
     console.log(`🌍 Environment: ${config.nodeEnv}`);
-  }
-});
+  });
+}
 
 // Export app for testing
 export { app, server };
@@ -71,12 +72,18 @@ export { app, server };
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('🛑 Shutting down gracefully...');
+  if (server) {
+    server.close();
+  }
   await prisma.$disconnect();
   process.exit(0);
 });
 
 process.on('SIGTERM', async () => {
   console.log('🛑 Shutting down gracefully...');
+  if (server) {
+    server.close();
+  }
   await prisma.$disconnect();
   process.exit(0);
 });
