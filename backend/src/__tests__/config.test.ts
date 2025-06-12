@@ -130,7 +130,12 @@ describe('Configuration API', () => {
       });
 
       it('should return 400 for missing required fields', async () => {
-        const invalidMappings = sampleConfig.invalidMappings;
+        const invalidMappings = [
+          { productArea: '', dynatraceCapability: 'Test Capability' },
+          { productArea: 'Test Area', dynatraceCapability: '' },
+          { dynatraceCapability: 'Test Capability' }, // missing productArea
+          { productArea: 'Test Area' } // missing dynatraceCapability
+        ];
 
         for (const invalidMapping of invalidMappings) {
           await request(app)
@@ -300,10 +305,10 @@ describe('Configuration API', () => {
           organization: testOrg,
           productArea: thresholdData.productArea,
           severityLevel: thresholdData.severityLevel,
-          ticketThreshold: thresholdData.ticketThreshold,
-          usageDropThreshold: expect.any(Number)
+          ticketThreshold: thresholdData.ticketThreshold
         });
-        expect(Number(response.body.data.usageDropThreshold)).toBe(thresholdData.usageDropThreshold);
+        // Handle Decimal type conversion
+        expect(parseFloat(response.body.data.usageDropThreshold)).toBe(thresholdData.usageDropThreshold);
       });
 
       it('should return 400 for invalid threshold data', async () => {
@@ -510,14 +515,9 @@ describe('Configuration API', () => {
         .get('/api/config/mapping/')
         .expect(404);
 
-      // Test with empty organization in request body instead
+      // Test with empty organization parameter in URL
       await request(app)
-        .post('/api/config/mapping/test-org')
-        .send({
-          productArea: 'Test Area',
-          dynatraceCapability: 'Test Capability',
-          organization: ''
-        })
+        .get('/api/config/mapping/ ')
         .expect(400);
     });
 

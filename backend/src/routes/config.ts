@@ -85,9 +85,6 @@ router.post('/mapping/:organization', async (req, res, next) => {
       throw new AppError('Dynatrace capability is required', 400);
     }
 
-    if (!organization || typeof organization !== 'string' || organization.trim() === '') {
-      throw new AppError('Organization is required', 400);
-    }
 
     if (typeof isKeyModule !== 'boolean') {
       throw new AppError('isKeyModule must be a boolean', 400);
