@@ -23,7 +23,32 @@ jest.mock('../server', () => ({
 
 // Import the mocked prisma after the mock is set up
 import { prisma } from '../server';
-const mockPrisma = prisma as jest.Mocked<typeof prisma>;
+
+// Type the mocked prisma properly
+const mockPrisma = {
+  supportTicket: {
+    groupBy: jest.fn(),
+  },
+  dynatraceUsage: {
+    findMany: jest.fn(),
+  },
+  productAreaMapping: {
+    findFirst: jest.fn(),
+    findMany: jest.fn(),
+  },
+  technicalDebtAnalysis: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+  },
+} as any;
+
+// Replace the actual prisma methods with our typed mocks
+(prisma as any).supportTicket.groupBy = mockPrisma.supportTicket.groupBy;
+(prisma as any).dynatraceUsage.findMany = mockPrisma.dynatraceUsage.findMany;
+(prisma as any).productAreaMapping.findFirst = mockPrisma.productAreaMapping.findFirst;
+(prisma as any).productAreaMapping.findMany = mockPrisma.productAreaMapping.findMany;
+(prisma as any).technicalDebtAnalysis.create = mockPrisma.technicalDebtAnalysis.create;
+(prisma as any).technicalDebtAnalysis.findMany = mockPrisma.technicalDebtAnalysis.findMany;
 
 describe('TechnicalDebtService', () => {
   let service: TechnicalDebtService;
