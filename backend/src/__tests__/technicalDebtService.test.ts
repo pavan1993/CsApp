@@ -294,8 +294,8 @@ describe('TechnicalDebtService', () => {
 
       expect(result.category).toBe('Critical');
       expect(result.debtScore).toBeGreaterThan(200);
-      expect(result.recommendations.some(r => r.includes('URGENT'))).toBe(true);
-      expect(result.recommendations.some(r => r.includes('CRITICAL'))).toBe(true);
+      expect(result.recommendations.some((r: string) => r.includes('URGENT'))).toBe(true);
+      expect(result.recommendations.some((r: string) => r.includes('CRITICAL'))).toBe(true);
     });
 
     it('should handle healthy module scenario', async () => {
@@ -335,7 +335,7 @@ describe('TechnicalDebtService', () => {
 
       expect(result.category).toBe('Good');
       expect(result.debtScore).toBeLessThan(51);
-      expect(result.recommendations.some(r => r.includes('good health'))).toBe(true);
+      expect(result.recommendations.some((r: string) => r.includes('good health'))).toBe(true);
     });
   });
 });

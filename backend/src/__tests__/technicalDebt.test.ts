@@ -208,8 +208,8 @@ describe('Technical Debt Scoring Algorithm', () => {
       };
 
       const recommendations = generateRecommendations(50, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('critical ticket'))).toBe(true);
-      expect(recommendations.some(r => r.includes('3 critical'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('critical ticket'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('3 critical'))).toBe(true);
     });
 
     it('should generate zero usage recommendations for key modules', () => {
@@ -228,8 +228,8 @@ describe('Technical Debt Scoring Algorithm', () => {
       };
 
       const recommendations = generateRecommendations(100, ticketCounts, usageMetrics, true);
-      expect(recommendations.some(r => r.includes('URGENT'))).toBe(true);
-      expect(recommendations.some(r => r.includes('Key module'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('URGENT'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('Key module'))).toBe(true);
     });
 
     it('should generate usage drop recommendations', () => {
@@ -248,8 +248,8 @@ describe('Technical Debt Scoring Algorithm', () => {
       };
 
       const recommendations = generateRecommendations(75, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('usage drop'))).toBe(true);
-      expect(recommendations.some(r => r.includes('50.0%'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('usage drop'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('50.0%'))).toBe(true);
     });
 
     it('should generate score-based recommendations', () => {
@@ -269,19 +269,19 @@ describe('Technical Debt Scoring Algorithm', () => {
 
       // Test critical score
       let recommendations = generateRecommendations(250, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('CRITICAL'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('CRITICAL'))).toBe(true);
 
       // Test high risk score
       recommendations = generateRecommendations(150, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('HIGH RISK'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('HIGH RISK'))).toBe(true);
 
       // Test moderate risk score
       recommendations = generateRecommendations(75, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('MODERATE RISK'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('MODERATE RISK'))).toBe(true);
 
       // Test good score
       recommendations = generateRecommendations(25, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('good health'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('good health'))).toBe(true);
     });
 
     it('should generate high ticket volume recommendations', () => {
@@ -300,8 +300,8 @@ describe('Technical Debt Scoring Algorithm', () => {
       };
 
       const recommendations = generateRecommendations(100, ticketCounts, usageMetrics, false);
-      expect(recommendations.some(r => r.includes('High ticket volume'))).toBe(true);
-      expect(recommendations.some(r => r.includes('12 tickets'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('High ticket volume'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('12 tickets'))).toBe(true);
     });
 
     it('should generate key module specific recommendations', () => {
@@ -320,7 +320,7 @@ describe('Technical Debt Scoring Algorithm', () => {
       };
 
       const recommendations = generateRecommendations(60, ticketCounts, usageMetrics, true);
-      expect(recommendations.some(r => r.includes('key module'))).toBe(true);
+      expect(recommendations.some((r: string) => r.includes('key module'))).toBe(true);
     });
   });
 
@@ -361,8 +361,8 @@ describe('Technical Debt Scoring Algorithm', () => {
 
       const errors = validateScoringInputs(ticketCounts, usageMetrics);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors.some(e => e.includes('CRITICAL'))).toBe(true);
-      expect(errors.some(e => e.includes('SEVERE'))).toBe(true);
+      expect(errors.some((e: string) => e.includes('CRITICAL'))).toBe(true);
+      expect(errors.some((e: string) => e.includes('SEVERE'))).toBe(true);
     });
 
     it('should detect invalid usage metrics', () => {
@@ -382,8 +382,8 @@ describe('Technical Debt Scoring Algorithm', () => {
 
       const errors = validateScoringInputs(ticketCounts, usageMetrics);
       expect(errors.length).toBeGreaterThan(0);
-      expect(errors.some(e => e.includes('current usage'))).toBe(true);
-      expect(errors.some(e => e.includes('usage drop percentage'))).toBe(true);
+      expect(errors.some((e: string) => e.includes('current usage'))).toBe(true);
+      expect(errors.some((e: string) => e.includes('usage drop percentage'))).toBe(true);
     });
   });
 
