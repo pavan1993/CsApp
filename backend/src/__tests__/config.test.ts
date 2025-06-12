@@ -4,6 +4,19 @@ import { connectDatabase } from '../config/database';
 import { TicketSeverity } from '@prisma/client';
 import sampleConfig from './fixtures/sample-config.json';
 
+// Type-safe access to sample data
+const getProductAreaMapping = (index: number) => {
+  const mapping = sampleConfig.productAreaMappings[index];
+  if (!mapping) throw new Error(`Product area mapping at index ${index} not found`);
+  return mapping;
+};
+
+const getThresholdConfiguration = (index: number) => {
+  const threshold = sampleConfig.thresholdConfigurations[index];
+  if (!threshold) throw new Error(`Threshold configuration at index ${index} not found`);
+  return threshold;
+};
+
 const prisma = connectDatabase();
 
 describe('Configuration API', () => {
@@ -47,16 +60,22 @@ describe('Configuration API', () => {
 
       it('should return mappings for specific organization', async () => {
         // Create test mappings
+        const mapping1Data = getProductAreaMapping(0);
+        const mapping2Data = getProductAreaMapping(1);
+        
         const mapping1 = await prisma.productAreaMapping.create({
-          data: sampleConfig.productAreaMappings[0]
+          data: mapping1Data
         });
         const mapping2 = await prisma.productAreaMapping.create({
-          data: sampleConfig.productAreaMappings[1]
+          data: mapping2Data
         });
 
         // Create mapping for different org
         await prisma.productAreaMapping.create({
-          data: { ...sampleConfig.productAreaMappings[0], organization: otherOrg }
+          data: { 
+            ...mapping1Data, 
+            organization: otherOrg 
+          }
         });
 
         const response = await request(app)
@@ -79,7 +98,7 @@ describe('Configuration API', () => {
 
     describe('POST /api/config/mapping/:organization', () => {
       it('should create new mapping successfully', async () => {
-        const mappingData = sampleConfig.productAreaMappings[0];
+        const mappingData = getProductAreaMapping(0);
 
         const response = await request(app)
           .post(`/api/config/mapping/${testOrg}`)
@@ -119,7 +138,7 @@ describe('Configuration API', () => {
       });
 
       it('should return 409 for duplicate mapping', async () => {
-        const mappingData = sampleConfig.productAreaMappings[0];
+        const mappingData = getProductAreaMapping(0);
 
         // Create first mapping
         await request(app)
@@ -152,8 +171,9 @@ describe('Configuration API', () => {
     describe('PUT /api/config/mapping/:organization/:id', () => {
       it('should update mapping successfully', async () => {
         // Create initial mapping
+        const mappingData = getProductAreaMapping(0);
         const mapping = await prisma.productAreaMapping.create({
-          data: sampleConfig.productAreaMappings[0]
+          data: mappingData
         });
 
         const updateData = {
@@ -179,8 +199,9 @@ describe('Configuration API', () => {
       });
 
       it('should return 400 for invalid update data', async () => {
+        const mappingData = getProductAreaMapping(0);
         const mapping = await prisma.productAreaMapping.create({
-          data: sampleConfig.productAreaMappings[0]
+          data: mappingData
         });
 
         await request(app)
@@ -192,8 +213,9 @@ describe('Configuration API', () => {
 
     describe('DELETE /api/config/mapping/:organization/:id', () => {
       it('should delete mapping successfully', async () => {
+        const mappingData = getProductAreaMapping(0);
         const mapping = await prisma.productAreaMapping.create({
-          data: sampleConfig.productAreaMappings[0]
+          data: mappingData
         });
 
         await request(app)
@@ -231,16 +253,22 @@ describe('Configuration API', () => {
 
       it('should return thresholds for specific organization', async () => {
         // Create test thresholds
+        const threshold1Data = getThresholdConfiguration(0);
+        const threshold2Data = getThresholdConfiguration(1);
+        
         const threshold1 = await prisma.thresholdConfiguration.create({
-          data: sampleConfig.thresholdConfigurations[0]
+          data: threshold1Data
         });
         const threshold2 = await prisma.thresholdConfiguration.create({
-          data: sampleConfig.thresholdConfigurations[1]
+          data: threshold2Data
         });
 
         // Create threshold for different org
         await prisma.thresholdConfiguration.create({
-          data: { ...sampleConfig.thresholdConfigurations[0], organization: otherOrg }
+          data: { 
+            ...threshold1Data, 
+            organization: otherOrg 
+          }
         });
 
         const response = await request(app)
@@ -257,7 +285,7 @@ describe('Configuration API', () => {
 
     describe('POST /api/config/thresholds/:organization', () => {
       it('should create new threshold successfully', async () => {
-        const thresholdData = sampleConfig.thresholdConfigurations[0];
+        const thresholdData = getThresholdConfiguration(0);
 
         const response = await request(app)
           .post(`/api/config/thresholds/${testOrg}`)
@@ -286,7 +314,7 @@ describe('Configuration API', () => {
       });
 
       it('should return 409 for duplicate threshold', async () => {
-        const thresholdData = sampleConfig.thresholdConfigurations[0];
+        const thresholdData = getThresholdConfiguration(0);
 
         // Create first threshold
         await request(app)
@@ -304,8 +332,9 @@ describe('Configuration API', () => {
 
     describe('PUT /api/config/thresholds/:organization/:id', () => {
       it('should update threshold successfully', async () => {
+        const thresholdData = getThresholdConfiguration(0);
         const threshold = await prisma.thresholdConfiguration.create({
-          data: sampleConfig.thresholdConfigurations[0]
+          data: thresholdData
         });
 
         const updateData = {
@@ -333,8 +362,9 @@ describe('Configuration API', () => {
 
     describe('DELETE /api/config/thresholds/:organization/:id', () => {
       it('should delete threshold successfully', async () => {
+        const thresholdData = getThresholdConfiguration(0);
         const threshold = await prisma.thresholdConfiguration.create({
-          data: sampleConfig.thresholdConfigurations[0]
+          data: thresholdData
         });
 
         await request(app)
@@ -354,11 +384,14 @@ describe('Configuration API', () => {
     describe('GET /api/config/key-modules/:organization', () => {
       it('should return only key modules', async () => {
         // Create mappings with mixed key module status
+        const mapping1Data = getProductAreaMapping(0);
+        const mapping2Data = getProductAreaMapping(2);
+        
         await prisma.productAreaMapping.create({
-          data: { ...sampleConfig.productAreaMappings[0], isKeyModule: true }
+          data: { ...mapping1Data, isKeyModule: true }
         });
         await prisma.productAreaMapping.create({
-          data: { ...sampleConfig.productAreaMappings[2], isKeyModule: false }
+          data: { ...mapping2Data, isKeyModule: false }
         });
 
         const response = await request(app)
@@ -373,8 +406,9 @@ describe('Configuration API', () => {
 
     describe('POST /api/config/key-modules/:organization', () => {
       it('should toggle key module status', async () => {
+        const mappingData = getProductAreaMapping(0);
         const mapping = await prisma.productAreaMapping.create({
-          data: { ...sampleConfig.productAreaMappings[0], isKeyModule: false }
+          data: { ...mappingData, isKeyModule: false }
         });
 
         const response = await request(app)
@@ -396,8 +430,9 @@ describe('Configuration API', () => {
 
     describe('PUT /api/config/key-modules/:organization/:id', () => {
       it('should update key module status', async () => {
+        const mappingData = getProductAreaMapping(0);
         const mapping = await prisma.productAreaMapping.create({
-          data: { ...sampleConfig.productAreaMappings[0], isKeyModule: false }
+          data: { ...mappingData, isKeyModule: false }
         });
 
         const response = await request(app)
@@ -414,11 +449,12 @@ describe('Configuration API', () => {
   describe('Organization Isolation', () => {
     it('should isolate mappings by organization', async () => {
       // Create mappings for different organizations
+      const mappingData = getProductAreaMapping(0);
       await prisma.productAreaMapping.create({
-        data: { ...sampleConfig.productAreaMappings[0], organization: testOrg }
+        data: { ...mappingData, organization: testOrg }
       });
       await prisma.productAreaMapping.create({
-        data: { ...sampleConfig.productAreaMappings[0], organization: otherOrg }
+        data: { ...mappingData, organization: otherOrg }
       });
 
       // Get mappings for testOrg
@@ -439,11 +475,12 @@ describe('Configuration API', () => {
 
     it('should isolate thresholds by organization', async () => {
       // Create thresholds for different organizations
+      const thresholdData = getThresholdConfiguration(0);
       await prisma.thresholdConfiguration.create({
-        data: { ...sampleConfig.thresholdConfigurations[0], organization: testOrg }
+        data: { ...thresholdData, organization: testOrg }
       });
       await prisma.thresholdConfiguration.create({
-        data: { ...sampleConfig.thresholdConfigurations[0], organization: otherOrg }
+        data: { ...thresholdData, organization: otherOrg }
       });
 
       // Get thresholds for testOrg
