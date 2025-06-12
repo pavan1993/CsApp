@@ -100,8 +100,8 @@ export class TechnicalDebtService {
         organization: result.organization,
         productArea: result.productArea,
         analysisDate: new Date(),
-        ticketCountBySeverity: result.ticketCounts,
-        usageMetrics: result.usageMetrics,
+        ticketCountBySeverity: result.ticketCounts as any,
+        usageMetrics: result.usageMetrics as any,
         debtScore: result.debtScore,
         recommendations: result.recommendations.join('\n')
       }
