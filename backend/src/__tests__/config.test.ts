@@ -14,7 +14,10 @@ const getProductAreaMapping = (index: number) => {
 const getThresholdConfiguration = (index: number) => {
   const threshold = sampleConfig.thresholdConfigurations[index];
   if (!threshold) throw new Error(`Threshold configuration at index ${index} not found`);
-  return threshold;
+  return {
+    ...threshold,
+    severityLevel: threshold.severityLevel as TicketSeverity
+  };
 };
 
 const prisma = connectDatabase();
