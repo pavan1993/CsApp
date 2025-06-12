@@ -1,7 +1,19 @@
 import express from 'express';
 import { PrismaClient, TicketSeverity } from '@prisma/client';
 import { connectDatabase } from '../config/database';
-import { AppError } from '../middleware/errorHandler';
+
+// Create a simple error class since AppError import is having issues
+class AppError extends Error {
+  statusCode: number;
+  isOperational: boolean;
+
+  constructor(message: string, statusCode: number) {
+    super(message);
+    this.statusCode = statusCode;
+    this.isOperational = true;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
 
 const router = express.Router();
 const prisma = connectDatabase();
