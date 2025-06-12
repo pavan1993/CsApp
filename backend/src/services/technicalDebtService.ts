@@ -1,6 +1,6 @@
 import { prisma } from '../server';
 import { TicketSeverity } from '@prisma/client';
-import { calculateTechnicalDebtScore, generateRecommendations, ScoreCategory } from '../utils/scoringUtils';
+import { calculateTechnicalDebtScore, generateRecommendations, getScoreCategory, ScoreCategory } from '../utils/scoringUtils';
 
 export interface TicketCounts {
   CRITICAL: number;
@@ -52,7 +52,7 @@ export class TechnicalDebtService {
     const recommendations = generateRecommendations(debtScore, ticketCounts, usageMetrics, isKeyModule);
     
     // Determine score category
-    const category = this.getScoreCategory(debtScore);
+    const category = getScoreCategory(debtScore);
     
     return {
       organization,
@@ -240,12 +240,6 @@ export class TechnicalDebtService {
     return !!mapping;
   }
 
-  private getScoreCategory(score: number): ScoreCategory {
-    if (score <= 50) return 'Good';
-    if (score <= 100) return 'Moderate Risk';
-    if (score <= 200) return 'High Risk';
-    return 'Critical';
-  }
 }
 
 export const technicalDebtService = new TechnicalDebtService();
