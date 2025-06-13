@@ -59,4 +59,7 @@ if (config.apiUrl.includes(':5000')) {
   console.warn('⚠️ Please check your .env file or environment variables')
 }
 
+// Log final configuration
+console.log('✅ Frontend will connect to:', config.apiUrl)
+
 export default config
