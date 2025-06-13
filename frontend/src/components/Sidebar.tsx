@@ -10,6 +10,14 @@ const Sidebar: React.FC = () => {
   const { setSelectedOrganization } = useAppActions()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
 
+  // Debug logging
+  console.log('🔍 Sidebar state:', {
+    selectedOrganization: state.selectedOrganization,
+    organizationsCount: state.organizations.length,
+    isLoading: state.isLoading,
+    error: state.error
+  });
+
   // Auto-select first organization if none selected and organizations are loaded
   useEffect(() => {
     if (!state.selectedOrganization && state.organizations.length > 0 && !state.isLoading) {
