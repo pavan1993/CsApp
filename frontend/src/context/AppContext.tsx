@@ -88,12 +88,18 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const organizations = await apiService.getOrganizations()
         console.log('📋 Raw organizations response:', organizations);
         
-        if (!Array.isArray(organizations)) {
-          console.error('❌ Organizations response is not an array:', typeof organizations, organizations);
-          throw new Error('Invalid organizations response format');
+        // Handle the response - it should be an array of strings
+        let orgArray: string[] = [];
+        if (Array.isArray(organizations)) {
+          orgArray = organizations;
+        } else if (organizations && typeof organizations === 'object' && 'data' in organizations) {
+          orgArray = Array.isArray(organizations.data) ? organizations.data : [];
+        } else {
+          console.warn('⚠️ Unexpected organizations format, using fallback');
+          orgArray = [];
         }
         
-        const orgObjects = organizations.map(name => ({ id: name, name }))
+        const orgObjects = orgArray.map(name => ({ id: name, name }))
         console.log('🏢 Mapped organization objects:', orgObjects);
         
         dispatch({ type: 'SET_ORGANIZATIONS', payload: orgObjects })

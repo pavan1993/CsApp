@@ -90,18 +90,20 @@ class ApiService {
 
   // Generic methods
   async get<T>(url: string, params?: any): Promise<T> {
-    const response = await this.client.get<ApiResponse<T>>(url, { params })
-    console.log('API Response:', response.data)
+    const response = await this.client.get<any>(url, { params })
+    console.log('Raw API Response:', response.data)
     
-    // Handle both formats: { data: T } and { success: true, data: T }
-    if (response.data && typeof response.data === 'object') {
-      if ('data' in response.data) {
-        return response.data.data
+    // Handle the backend response format: { success: true, data: T }
+    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+      if (response.data.success && 'data' in response.data) {
+        console.log('Extracted data:', response.data.data)
+        return response.data.data as T
+      } else {
+        throw new Error(response.data.message || 'API request failed')
       }
-      // If no nested data property, return the response data directly
-      return response.data as T
     }
     
+    // Fallback for other response formats
     return response.data as T
   }
 
@@ -134,11 +136,11 @@ class ApiService {
   }
 
   async testConnection(): Promise<any> {
-    console.log('🔄 Testing backend connection...');
+    console.log('🔄 Testing backend connection to:', `${config.apiUrl}/analytics/test`);
     try {
-      const result = await this.get('/analytics/test');
-      console.log('✅ Backend connection test successful:', result);
-      return result;
+      const response = await this.client.get('/analytics/test');
+      console.log('✅ Backend connection test successful:', response.data);
+      return response.data;
     } catch (error) {
       console.error('❌ Backend connection test failed:', error);
       throw error;
