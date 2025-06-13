@@ -1,6 +1,6 @@
 import { prisma } from '../server';
 import { TechnicalDebtService } from './technicalDebtService';
-import { TicketSeverity, SupportTicket, Usage, ProductAreaMapping } from '@prisma/client';
+import { TicketSeverity, SupportTicket, ProductAreaMapping } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 
 export interface TicketBreakdown {
@@ -78,7 +78,8 @@ export class AnalyticsService {
     const productAreaMap = new Map<string, TicketBreakdown>();
 
     for (const ticket of tickets) {
-      const productArea = ticket.productAreaMapping?.productArea || 'Unknown';
+      // Use the productArea field directly from the ticket
+      const productArea = ticket.productArea || 'Unknown';
       
       if (!productAreaMap.has(productArea)) {
         productAreaMap.set(productArea, {
@@ -101,15 +102,15 @@ export class AnalyticsService {
     // Calculate average resolution times
     for (const [productArea, breakdown] of productAreaMap) {
       const resolvedTickets = tickets.filter(
-        (t: SupportTicket & { productAreaMapping: ProductAreaMapping | null }) => 
-          t.productAreaMapping?.productArea === productArea && 
+        (t: any) => 
+          t.productArea === productArea && 
           t.status === 'RESOLVED' && 
-          t.resolvedAt
+          t.updated // Use updated field as resolution time
       );
 
       if (resolvedTickets.length > 0) {
-        const totalResolutionTime = resolvedTickets.reduce((sum: number, ticket: SupportTicket) => {
-          const resolutionTime = ticket.resolvedAt!.getTime() - ticket.createdAt.getTime();
+        const totalResolutionTime = resolvedTickets.reduce((sum: number, ticket: any) => {
+          const resolutionTime = ticket.updated.getTime() - ticket.createdAt.getTime();
           return sum + resolutionTime;
         }, 0);
         
@@ -143,31 +144,31 @@ export class AnalyticsService {
       const ticketCount = await prisma.supportTicket.count({
         where: {
           organization,
-          productAreaMapping: { productArea },
+          productArea,
           createdAt: { gte: thirtyDaysAgo },
         },
       });
 
-      // Get usage data
-      const currentUsage = await prisma.usage.findFirst({
+      // Get usage data - using the correct model name
+      const currentUsage = await prisma.usageData.findFirst({
         where: {
           organization,
-          productAreaMapping: { productArea },
+          capability: productArea, // Assuming capability maps to product area
         },
         orderBy: { createdAt: 'desc' },
       });
 
-      const previousUsage = await prisma.usage.findFirst({
+      const previousUsage = await prisma.usageData.findFirst({
         where: {
           organization,
-          productAreaMapping: { productArea },
+          capability: productArea,
           createdAt: { lt: currentUsage?.createdAt || new Date() },
         },
         orderBy: { createdAt: 'desc' },
       });
 
-      const currentUsageAmount = currentUsage?.currentUsage ? Number(currentUsage.currentUsage) : 0;
-      const previousUsageAmount = previousUsage?.currentUsage ? Number(previousUsage.currentUsage) : 0;
+      const currentUsageAmount = currentUsage?.last30DaysCost ? Number(currentUsage.last30DaysCost) : 0;
+      const previousUsageAmount = previousUsage?.last30DaysCost ? Number(previousUsage.last30DaysCost) : 0;
       
       const usageDropPercentage = previousUsageAmount > 0 
         ? ((previousUsageAmount - currentUsageAmount) / previousUsageAmount) * 100
@@ -270,7 +271,7 @@ export class AnalyticsService {
         const ticketCount = await prisma.supportTicket.count({
           where: {
             organization,
-            productAreaMapping: { productArea },
+            productArea,
             createdAt: {
               gte: monthStart,
               lt: monthEnd,
@@ -279,10 +280,10 @@ export class AnalyticsService {
         });
 
         // Get usage data for the month
-        const usageData = await prisma.usage.findFirst({
+        const usageData = await prisma.usageData.findFirst({
           where: {
             organization,
-            productAreaMapping: { productArea },
+            capability: productArea,
             createdAt: {
               gte: monthStart,
               lt: monthEnd,
@@ -307,7 +308,7 @@ export class AnalyticsService {
         monthlyData.push({
           date: monthStart.toISOString().substring(0, 7), // YYYY-MM format
           ticketCount,
-          usageAmount: usageData?.currentUsage ? Number(usageData.currentUsage) : 0,
+          usageAmount: usageData?.last30DaysCost ? Number(usageData.last30DaysCost) : 0,
           debtScore: debtAnalysis?.debtScore ? Number(debtAnalysis.debtScore) : undefined,
         });
       }
@@ -383,7 +384,7 @@ export class AnalyticsService {
       select: { createdAt: true },
     });
 
-    const lastUsage = await prisma.usage.findFirst({
+    const lastUsage = await prisma.usageData.findFirst({
       where: { organization },
       orderBy: { createdAt: 'desc' },
       select: { createdAt: true },
@@ -413,7 +414,7 @@ export class AnalyticsService {
       },
     });
 
-    const usageDeleted = await prisma.usage.deleteMany({
+    const usageDeleted = await prisma.usageData.deleteMany({
       where: {
         organization,
         createdAt: { lt: cutoffDate },
