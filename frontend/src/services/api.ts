@@ -88,11 +88,11 @@ class ApiService {
 
   // Specific API methods
   async getOrganizations(): Promise<string[]> {
-    return this.get('/api/analytics/organizations')
+    return this.get('/analytics/organizations')
   }
 
   async getHealthCheck(): Promise<{ status: string; timestamp: string }> {
-    return this.get('/api/health')
+    return this.get('/health')
   }
 
   async uploadTickets(organization: string, file: File): Promise<{ message: string }> {
@@ -100,7 +100,7 @@ class ApiService {
     formData.append('file', file)
     formData.append('organization', organization)
 
-    const response = await this.client.post('/api/tickets/upload', formData, {
+    const response = await this.client.post('/tickets/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -113,7 +113,7 @@ class ApiService {
     formData.append('file', file)
     formData.append('organization', organization)
 
-    const response = await this.client.post('/api/usage/upload', formData, {
+    const response = await this.client.post('/usage/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -122,7 +122,7 @@ class ApiService {
   }
 
   async getAnalytics(organization: string, type: string, params?: any) {
-    return this.get(`/api/analytics/${type}`, { organization, ...params })
+    return this.get(`/analytics/${type}`, { organization, ...params })
   }
 }
 
