@@ -1,7 +1,7 @@
-import React, { useState, useCallback, useRef } from 'react'
-import { Upload, X, AlertTriangle, CheckCircle, FileText } from 'lucide-react'
+import React, { useState, useRef } from 'react'
+import { Upload, X, FileText, CheckCircle } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
-import apiService from '../services/api'
+import { apiService } from '../services/api'
 
 interface CSVUploaderProps {
   uploadType: 'tickets' | 'usage'
@@ -82,7 +82,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     return null
   }
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
+  const handleDrag = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     if (e.type === 'dragenter' || e.type === 'dragover') {
@@ -90,9 +90,9 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     } else if (e.type === 'dragleave') {
       setDragActive(false)
     }
-  }, [])
+  }
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
+  const handleDrop = (e: React.DragEvent) => {
     e.preventDefault()
     e.stopPropagation()
     setDragActive(false)
@@ -100,9 +100,9 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFileSelection(e.dataTransfer.files[0])
     }
-  }, [])
+  }
 
-  const handleFileSelection = async (file: File) => {
+  const handleFileSelection = (file: File) => {
     const validationError = validateFile(file)
     if (validationError) {
       onUploadError?.(validationError)
@@ -110,16 +110,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     }
 
     setSelectedFile(file)
-    
-    // Check for 30-day validation for usage uploads
-    const warning = await checkLastUploadDate()
-    if (warning) {
-      setValidationWarning(warning)
-      setShowConfirmModal(true)
-    } else {
-      // Proceed with upload immediately
-      performUpload(file)
-    }
+    setUploadProgress({ progress: 0, status: 'idle' })
   }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -128,9 +119,9 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     }
   }
 
-  const performUpload = async (file: File, forceUpload = false) => {
-    if (!state.selectedOrganization) {
-      onUploadError?.('Please select an organization first')
+  const handleUpload = async () => {
+    if (!selectedFile || !state.selectedOrganization) {
+      onUploadError?.('Please select a file and organization')
       return
     }
 
@@ -151,7 +142,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         ? apiService.uploadTickets 
         : apiService.uploadUsage
 
-      const result = await uploadMethod(state.selectedOrganization.name, file)
+      const result = await uploadMethod(state.selectedOrganization.name, selectedFile)
       
       clearInterval(progressInterval)
       
@@ -205,27 +196,9 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     }
   }
 
-  const handleConfirmUpload = () => {
-    setShowConfirmModal(false)
-    setValidationWarning(null)
-    if (selectedFile) {
-      performUpload(selectedFile, true)
-    }
-  }
-
-  const handleCancelUpload = () => {
-    setShowConfirmModal(false)
-    setValidationWarning(null)
-    setSelectedFile(null)
-    if (fileInputRef.current) {
-      fileInputRef.current.value = ''
-    }
-  }
-
   const resetUpload = () => {
     setSelectedFile(null)
     setUploadProgress({ progress: 0, status: 'idle' })
-    setValidationWarning(null)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -259,43 +232,28 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         />
 
         <div className="text-center">
-          {uploadProgress.status === 'uploading' ? (
-            <div className="space-y-4">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          {selectedFile ? (
+            <div className="space-y-2">
+              <FileText className="mx-auto h-12 w-12 text-green-500" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Uploading...</p>
-                <div className="mt-2 bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${uploadProgress.progress}%` }}
-                  ></div>
-                </div>
+                <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
+                <p className="text-xs text-gray-500">
+                  {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
+                </p>
+                <button
+                  onClick={resetUpload}
+                  className="mt-2 text-sm text-red-600 hover:text-red-500"
+                >
+                  Remove file
+                </button>
               </div>
-            </div>
-          ) : uploadProgress.status === 'complete' ? (
-            <div className="space-y-2">
-              <CheckCircle className="mx-auto h-12 w-12 text-green-500" />
-              <p className="text-sm font-medium text-green-900">Upload Complete!</p>
-              <p className="text-xs text-green-700">{uploadProgress.message}</p>
-            </div>
-          ) : uploadProgress.status === 'error' ? (
-            <div className="space-y-2">
-              <X className="mx-auto h-12 w-12 text-red-500" />
-              <p className="text-sm font-medium text-red-900">Upload Failed</p>
-              <p className="text-xs text-red-700">{uploadProgress.message}</p>
-              <button
-                onClick={resetUpload}
-                className="text-sm text-blue-600 hover:text-blue-500"
-              >
-                Try Again
-              </button>
             </div>
           ) : (
             <div className="space-y-2">
               <Upload className="mx-auto h-12 w-12 text-gray-400" />
               <div>
                 <p className="text-sm font-medium text-gray-900">
-                  {selectedFile ? selectedFile.name : `Upload ${uploadType} CSV file`}
+                  Upload {uploadType} CSV file
                 </p>
                 <p className="text-xs text-gray-500">
                   Drag and drop your file here, or click to browse
@@ -309,59 +267,38 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         </div>
       </div>
 
-      {/* File Info */}
-      {selectedFile && uploadProgress.status === 'idle' && (
-        <div className="mt-4 p-3 bg-gray-50 rounded-md">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-900">{selectedFile.name}</span>
-              <span className="text-xs text-gray-500">
-                ({(selectedFile.size / 1024).toFixed(1)} KB)
-              </span>
-            </div>
-            <button
-              onClick={resetUpload}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-4 w-4" />
-            </button>
+      {/* Upload Progress */}
+      {uploadProgress.status !== 'idle' && (
+        <div className="mt-4 space-y-2">
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">{uploadProgress.message}</span>
+            <span className="text-gray-600">{uploadProgress.progress}%</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-2">
+            <div
+              className={`h-2 rounded-full transition-all duration-300 ${
+                uploadProgress.status === 'error'
+                  ? 'bg-red-500'
+                  : uploadProgress.status === 'complete'
+                  ? 'bg-green-500'
+                  : 'bg-blue-500'
+              }`}
+              style={{ width: `${uploadProgress.progress}%` }}
+            />
           </div>
         </div>
       )}
 
-      {/* Confirmation Modal */}
-      {showConfirmModal && validationWarning && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex items-center space-x-3">
-                <AlertTriangle className="h-6 w-6 text-amber-500" />
-                <h3 className="text-lg font-medium text-gray-900">
-                  Confirm Upload
-                </h3>
-              </div>
-              <div className="mt-4">
-                <p className="text-sm text-gray-600">
-                  {validationWarning.message}
-                </p>
-              </div>
-              <div className="mt-6 flex space-x-3">
-                <button
-                  onClick={handleConfirmUpload}
-                  className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                >
-                  Yes, Overwrite
-                </button>
-                <button
-                  onClick={handleCancelUpload}
-                  className="flex-1 bg-gray-300 text-gray-700 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
+      {/* Upload Button */}
+      {selectedFile && uploadProgress.status === 'idle' && (
+        <div className="mt-4 flex justify-end">
+          <button
+            onClick={handleUpload}
+            disabled={!state.selectedOrganization}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          >
+            Upload {uploadType === 'tickets' ? 'Tickets' : 'Usage Data'}
+          </button>
         </div>
       )}
     </div>
