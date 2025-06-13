@@ -77,6 +77,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         const orgObjects = organizations.map(name => ({ id: name, name }))
         dispatch({ type: 'SET_ORGANIZATIONS', payload: orgObjects })
         dispatch({ type: 'SET_ERROR', payload: null })
+        
+        // Auto-select first organization if available
+        if (orgObjects.length > 0) {
+          dispatch({ type: 'SET_SELECTED_ORGANIZATION', payload: orgObjects[0] })
+        }
       } catch (error) {
         console.error('Failed to load organizations:', error)
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load organizations' })

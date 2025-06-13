@@ -3,38 +3,20 @@ import { ChevronDown, Building2, Upload, FileText, BarChart3 } from 'lucide-reac
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAppContext, useAppActions } from '../context/AppContext'
-import apiService from '../services/api'
 import LoadingSpinner from './LoadingSpinner'
 
 const Sidebar: React.FC = () => {
   const navigate = useNavigate()
   const { state } = useAppContext()
-  const { setOrganizations, setSelectedOrganization, setLoading, setError } = useAppActions()
+  const { setSelectedOrganization } = useAppActions()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [isLoadingOrgs, setIsLoadingOrgs] = useState(false)
 
+  // Auto-select first organization if none selected and organizations are loaded
   useEffect(() => {
-    loadOrganizations()
-  }, [])
-
-  const loadOrganizations = async () => {
-    try {
-      setIsLoadingOrgs(true)
-      const orgs = await apiService.getOrganizations()
-      const organizationObjects = orgs.map(name => ({ id: name, name }))
-      setOrganizations(organizationObjects)
-      
-      // Auto-select first organization if none selected
-      if (!state.selectedOrganization && organizationObjects.length > 0) {
-        setSelectedOrganization(organizationObjects[0])
-      }
-    } catch (error) {
-      console.error('Failed to load organizations:', error)
-      setError('Failed to load organizations')
-    } finally {
-      setIsLoadingOrgs(false)
+    if (!state.selectedOrganization && state.organizations.length > 0 && !state.isLoading) {
+      setSelectedOrganization(state.organizations[0])
     }
-  }
+  }, [state.organizations, state.selectedOrganization, state.isLoading, setSelectedOrganization])
 
   const handleOrganizationSelect = (org: { id: string; name: string }) => {
     setSelectedOrganization(org)
@@ -49,7 +31,7 @@ const Sidebar: React.FC = () => {
             Organization
           </label>
           
-          {isLoadingOrgs ? (
+          {state.isLoading ? (
             <div className="flex items-center justify-center py-2">
               <LoadingSpinner size="sm" />
             </div>
@@ -92,7 +74,7 @@ const Sidebar: React.FC = () => {
             </div>
           )}
 
-          {state.organizations.length === 0 && !isLoadingOrgs && (
+          {state.organizations.length === 0 && !state.isLoading && (
             <p className="text-sm text-gray-500 mt-2">
               No organizations available. Upload some data to get started.
             </p>
