@@ -48,7 +48,15 @@ console.log('Frontend API Configuration:', {
   isDevelopment: config.isDevelopment,
   isProduction: config.isProduction,
   currentOrigin: window.location.origin,
+  expectedBackendPort: 3001,
+  actualConfiguredUrl: config.apiUrl,
   env: import.meta.env
 })
+
+// Warn if configuration seems wrong
+if (config.apiUrl.includes(':5000')) {
+  console.warn('⚠️ WARNING: Frontend is configured to connect to port 5000, but backend runs on port 3001!')
+  console.warn('⚠️ Please check your .env file or environment variables')
+}
 
 export default config
