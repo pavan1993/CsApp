@@ -357,36 +357,6 @@ router.get('/usage-correlation/:organization', async (req, res) => {
   }
 });
 
-// Get comprehensive technical debt analysis
-router.get('/technical-debt/:organization', async (req, res) => {
-  try {
-    const { organization } = req.params;
-
-    if (!organization) {
-      res.status(400).json({
-        success: false,
-        message: 'Organization is required',
-      });
-      return;
-    }
-
-    const analysis = await analyticsService.getTechnicalDebtAnalysis(
-      decodeURIComponent(organization)
-    );
-
-    res.json({
-      success: true,
-      data: analysis,
-    });
-  } catch (error) {
-    console.error('Error fetching technical debt analysis:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch technical debt analysis',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-  }
-});
 
 // Get historical trend analysis
 router.get('/trends/:organization', async (req, res) => {
