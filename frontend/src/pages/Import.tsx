@@ -170,7 +170,6 @@ const Import: React.FC = () => {
               onUploadProgress={handleUploadProgress}
             />
           </div>
-        </div>
 
           {/* Import Status */}
           {uploadStatus !== 'idle' && (
