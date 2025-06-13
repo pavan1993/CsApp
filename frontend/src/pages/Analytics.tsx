@@ -9,19 +9,24 @@ const Analytics: React.FC = () => {
     return <LoadingSpinner text="Loading analytics..." />
   }
 
-  if (state.error) {
-    return (
-      <div className="px-4 py-6 sm:px-0">
-        <div className="border-4 border-dashed border-red-200 rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-red-900 mb-6">Error</h2>
-          <p className="text-red-600">{state.error}</p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="px-4 py-6 sm:px-0">
+      {state.error && (
+        <div className="mb-6 border border-red-200 rounded-lg p-4 bg-red-50">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                Connection Error
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{state.error}</p>
+                <p className="mt-1">Showing demo data below.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="border-4 border-dashed border-gray-200 rounded-lg p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Analytics</h2>
         <p className="text-gray-600">Advanced analytics dashboard coming soon...</p>
@@ -29,6 +34,13 @@ const Analytics: React.FC = () => {
           <div className="mt-4">
             <p className="text-sm text-gray-500">
               Organizations loaded: {state.organizations.length}
+            </p>
+          </div>
+        )}
+        {state.error && (
+          <div className="mt-4">
+            <p className="text-sm text-gray-500">
+              Demo mode: Backend connection failed
             </p>
           </div>
         )}

@@ -84,7 +84,15 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
       } catch (error) {
         console.error('Failed to load organizations:', error)
-        dispatch({ type: 'SET_ERROR', payload: 'Failed to load organizations' })
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to load organizations. Backend may be unavailable.' })
+        
+        // Provide fallback demo organizations so the app is still usable
+        const demoOrganizations = [
+          { id: 'demo-org-1', name: 'Demo Organization 1' },
+          { id: 'demo-org-2', name: 'Demo Organization 2' }
+        ]
+        dispatch({ type: 'SET_ORGANIZATIONS', payload: demoOrganizations })
+        dispatch({ type: 'SET_SELECTED_ORGANIZATION', payload: demoOrganizations[0] })
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }

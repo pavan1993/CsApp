@@ -55,16 +55,6 @@ const Import: React.FC = () => {
     return <LoadingSpinner text="Loading import page..." />
   }
 
-  if (state.error) {
-    return (
-      <div className="px-4 py-6 sm:px-0">
-        <div className="border-4 border-dashed border-red-200 rounded-lg p-6">
-          <h2 className="text-2xl font-bold text-red-900 mb-6">Error</h2>
-          <p className="text-red-600">{state.error}</p>
-        </div>
-      </div>
-    )
-  }
 
   if (!state.selectedOrganization) {
     return (
@@ -87,10 +77,26 @@ const Import: React.FC = () => {
 
   return (
     <div className="px-4 py-6 sm:px-0">
+      {state.error && (
+        <div className="mb-6 border border-red-200 rounded-lg p-4 bg-red-50">
+          <div className="flex">
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-red-800">
+                Connection Error
+              </h3>
+              <div className="mt-2 text-sm text-red-700">
+                <p>{state.error}</p>
+                <p className="mt-1">Import functionality may be limited.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Data Import</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Upload CSV files for {state.selectedOrganization.name}
+          Upload CSV files for {state.selectedOrganization?.name || 'selected organization'}
         </p>
       </div>
 

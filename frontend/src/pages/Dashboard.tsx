@@ -16,6 +16,9 @@ const Dashboard: React.FC = () => {
         <div className="border-4 border-dashed border-red-200 rounded-lg p-6">
           <h2 className="text-2xl font-bold text-red-900 mb-6">Error</h2>
           <p className="text-red-600">{state.error}</p>
+          <p className="text-sm text-gray-500 mt-2">
+            This may be due to backend connectivity issues. The dashboard will show mock data for now.
+          </p>
         </div>
       </div>
     )
