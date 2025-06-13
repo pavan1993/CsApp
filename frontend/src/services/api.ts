@@ -45,13 +45,23 @@ class ApiService {
 
     // Response interceptor
     this.client.interceptors.response.use(
-      (response: AxiosResponse) => response,
+      (response: AxiosResponse) => {
+        console.log('✅ Successful API response:', {
+          url: response.config.url,
+          status: response.status,
+          dataType: typeof response.data,
+          hasSuccess: 'success' in (response.data || {}),
+          hasData: 'data' in (response.data || {})
+        });
+        return response;
+      },
       (error: AxiosError) => {
         // Enhanced logging for debugging connection issues
-        console.error('API Error Details:', {
+        console.error('❌ API Error Details:', {
           url: error.config?.url,
           method: error.config?.method,
           baseURL: error.config?.baseURL,
+          fullURL: `${error.config?.baseURL}${error.config?.url}`,
           status: error.response?.status,
           statusText: error.response?.statusText,
           message: error.message,
@@ -90,25 +100,30 @@ class ApiService {
 
   // Generic methods
   async get<T>(url: string, params?: any): Promise<T> {
-    console.log(`🔄 Making GET request to: ${url}`, params ? `with params: ${JSON.stringify(params)}` : '');
-    const response = await this.client.get<any>(url, { params })
-    console.log('Raw API Response:', response.data)
-    
-    // Handle the backend response format: { success: true, data: T }
-    if (response.data && typeof response.data === 'object' && 'success' in response.data) {
-      if (response.data.success && 'data' in response.data) {
-        console.log('Extracted data:', response.data.data)
-        return response.data.data as T
-      } else {
-        const errorMessage = response.data.message || 'API request failed';
-        console.error('API request failed:', errorMessage);
-        throw new Error(errorMessage);
+    console.log(`🔄 Making GET request to: ${config.apiUrl}${url}`, params ? `with params: ${JSON.stringify(params)}` : '');
+    try {
+      const response = await this.client.get<any>(url, { params })
+      console.log('✅ Raw API Response:', response.data)
+      
+      // Handle the backend response format: { success: true, data: T }
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        if (response.data.success && 'data' in response.data) {
+          console.log('✅ Extracted data:', response.data.data)
+          return response.data.data as T
+        } else {
+          const errorMessage = response.data.message || 'API request failed';
+          console.error('❌ API request failed:', errorMessage);
+          throw new Error(errorMessage);
+        }
       }
+      
+      // Fallback for other response formats
+      console.log('⚠️ Using fallback response format');
+      return response.data as T
+    } catch (error) {
+      console.error(`❌ GET request failed for ${url}:`, error);
+      throw error;
     }
-    
-    // Fallback for other response formats
-    console.log('Using fallback response format');
-    return response.data as T
   }
 
   async post<T>(url: string, data?: any): Promise<T> {
