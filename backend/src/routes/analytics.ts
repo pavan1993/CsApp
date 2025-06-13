@@ -1,7 +1,11 @@
 import express from 'express';
 import { prisma } from '../server';
-import { analyticsService } from '../services/analyticsService';
-import { technicalDebtService } from '../services/technicalDebtService';
+import { AnalyticsService } from '../services/analyticsService';
+import { TechnicalDebtService } from '../services/technicalDebtService';
+
+// Create service instances
+const analyticsService = new AnalyticsService();
+const technicalDebtService = new TechnicalDebtService();
 
 const router = express.Router();
 

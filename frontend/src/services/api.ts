@@ -90,6 +90,7 @@ class ApiService {
 
   // Generic methods
   async get<T>(url: string, params?: any): Promise<T> {
+    console.log(`🔄 Making GET request to: ${url}`, params ? `with params: ${JSON.stringify(params)}` : '');
     const response = await this.client.get<any>(url, { params })
     console.log('Raw API Response:', response.data)
     
@@ -99,11 +100,14 @@ class ApiService {
         console.log('Extracted data:', response.data.data)
         return response.data.data as T
       } else {
-        throw new Error(response.data.message || 'API request failed')
+        const errorMessage = response.data.message || 'API request failed';
+        console.error('API request failed:', errorMessage);
+        throw new Error(errorMessage);
       }
     }
     
     // Fallback for other response formats
+    console.log('Using fallback response format');
     return response.data as T
   }
 

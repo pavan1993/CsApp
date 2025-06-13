@@ -89,8 +89,9 @@ const Sidebar: React.FC = () => {
           {state.selectedOrganization && (
             <div className="space-y-2">
               <button 
-                onClick={() => {
-                  console.log('🔄 Navigating to /import');
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('🔄 Navigating to /import for tickets');
                   navigate('/import');
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
@@ -99,8 +100,9 @@ const Sidebar: React.FC = () => {
                 Upload Tickets
               </button>
               <button 
-                onClick={() => {
-                  console.log('🔄 Navigating to /import');
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log('🔄 Navigating to /import for usage');
                   navigate('/import');
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
@@ -109,14 +111,15 @@ const Sidebar: React.FC = () => {
                 Upload Usage Data
               </button>
               <button 
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
                   console.log('🔄 Navigating to /analytics');
                   navigate('/analytics');
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
-                <FileText className="w-4 h-4 mr-2" />
-                Generate Report
+                <BarChart3 className="w-4 h-4 mr-2" />
+                View Analytics
               </button>
             </div>
           )}
