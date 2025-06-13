@@ -3,10 +3,11 @@ export const config = {
   // API Configuration
   apiUrl: (() => {
     const envUrl = import.meta.env.VITE_API_URL;
-    if (envUrl) {
-      // If VITE_API_URL is set but doesn't include /api, add it
+    if (envUrl && !envUrl.includes(':5000')) {
+      // If VITE_API_URL is set and not pointing to port 5000, use it
       return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
     }
+    // Always use port 3001 as default or if env points to wrong port
     return 'http://localhost:3001/api';
   })(),
   apiTimeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
