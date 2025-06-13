@@ -91,7 +91,18 @@ class ApiService {
   // Generic methods
   async get<T>(url: string, params?: any): Promise<T> {
     const response = await this.client.get<ApiResponse<T>>(url, { params })
-    return response.data.data
+    console.log('API Response:', response.data)
+    
+    // Handle both formats: { data: T } and { success: true, data: T }
+    if (response.data && typeof response.data === 'object') {
+      if ('data' in response.data) {
+        return response.data.data
+      }
+      // If no nested data property, return the response data directly
+      return response.data as T
+    }
+    
+    return response.data as T
   }
 
   async post<T>(url: string, data?: any): Promise<T> {

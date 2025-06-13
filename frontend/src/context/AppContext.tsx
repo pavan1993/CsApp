@@ -84,14 +84,25 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         }
         
         // Try to load organizations
+        console.log('🔄 Calling apiService.getOrganizations()...');
         const organizations = await apiService.getOrganizations()
+        console.log('📋 Raw organizations response:', organizations);
+        
+        if (!Array.isArray(organizations)) {
+          console.error('❌ Organizations response is not an array:', typeof organizations, organizations);
+          throw new Error('Invalid organizations response format');
+        }
+        
         const orgObjects = organizations.map(name => ({ id: name, name }))
+        console.log('🏢 Mapped organization objects:', orgObjects);
+        
         dispatch({ type: 'SET_ORGANIZATIONS', payload: orgObjects })
         dispatch({ type: 'SET_ERROR', payload: null })
         
         // Auto-select first organization if available
         if (orgObjects.length > 0) {
           dispatch({ type: 'SET_SELECTED_ORGANIZATION', payload: orgObjects[0] })
+          console.log('✅ Auto-selected organization:', orgObjects[0]);
         }
         
         console.log('✅ Organizations loaded successfully:', orgObjects);
