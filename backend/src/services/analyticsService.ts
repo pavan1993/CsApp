@@ -150,7 +150,7 @@ export class AnalyticsService {
       });
 
       // Get usage data - using the correct model name
-      const currentUsage = await prisma.usageData.findFirst({
+      const currentUsage = await prisma.usage.findFirst({
         where: {
           organization,
           capability: productArea, // Assuming capability maps to product area
@@ -158,7 +158,7 @@ export class AnalyticsService {
         orderBy: { createdAt: 'desc' },
       });
 
-      const previousUsage = await prisma.usageData.findFirst({
+      const previousUsage = await prisma.usage.findFirst({
         where: {
           organization,
           capability: productArea,
@@ -280,7 +280,7 @@ export class AnalyticsService {
         });
 
         // Get usage data for the month
-        const usageData = await prisma.usageData.findFirst({
+        const usageData = await prisma.usage.findFirst({
           where: {
             organization,
             capability: productArea,
@@ -384,7 +384,7 @@ export class AnalyticsService {
       select: { createdAt: true },
     });
 
-    const lastUsage = await prisma.usageData.findFirst({
+    const lastUsage = await prisma.usage.findFirst({
       where: { organization },
       orderBy: { createdAt: 'desc' },
       select: { createdAt: true },
@@ -414,7 +414,7 @@ export class AnalyticsService {
       },
     });
 
-    const usageDeleted = await prisma.usageData.deleteMany({
+    const usageDeleted = await prisma.usage.deleteMany({
       where: {
         organization,
         createdAt: { lt: cutoffDate },
