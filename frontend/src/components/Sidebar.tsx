@@ -105,7 +105,7 @@ const Sidebar: React.FC = () => {
                 console.log('🔄 Selected organization:', state.selectedOrganization);
                 console.log('🔄 Navigating to /import for tickets');
                 try {
-                  navigate('/import');
+                  navigate('/import?tab=tickets');
                   console.log('✅ Navigation to /import successful');
                 } catch (error) {
                   console.error('❌ Navigation failed:', error);
@@ -126,7 +126,7 @@ const Sidebar: React.FC = () => {
                 console.log('🔄 Selected organization:', state.selectedOrganization);
                 console.log('🔄 Navigating to /import for usage');
                 try {
-                  navigate('/import');
+                  navigate('/import?tab=usage');
                   console.log('✅ Navigation to /import successful');
                 } catch (error) {
                   console.error('❌ Navigation failed:', error);

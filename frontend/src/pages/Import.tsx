@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { FileText, BarChart3, AlertCircle, CheckCircle, Clock } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
+import { useSearchParams } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 import CSVUploader from '../components/CSVUploader'
 import UploadHistory from '../components/UploadHistory'
@@ -9,6 +10,7 @@ import DataPreview from '../components/DataPreview'
 
 const Import: React.FC = () => {
   const { state } = useAppContext()
+  const [searchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<'tickets' | 'usage'>('tickets')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'validating' | 'complete' | 'error'>('idle')
@@ -17,6 +19,14 @@ const Import: React.FC = () => {
   const [validationResult, setValidationResult] = useState<any>()
   const [uploadedData, setUploadedData] = useState<any[]>()
   const [showDataPreview, setShowDataPreview] = useState(false)
+
+  // Set active tab based on URL parameter
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    if (tabParam === 'usage' || tabParam === 'tickets') {
+      setActiveTab(tabParam)
+    }
+  }, [searchParams])
 
   const handleUploadComplete = (result: any) => {
     console.log('Upload completed:', result)
