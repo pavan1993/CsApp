@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react'
-import { ChevronDown, Building2 } from 'lucide-react'
+import { ChevronDown, Building2, Upload, FileText, BarChart3 } from 'lucide-react'
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppContext, useAppActions } from '../context/AppContext'
 import apiService from '../services/api'
 import LoadingSpinner from './LoadingSpinner'
 
 const Sidebar: React.FC = () => {
+  const navigate = useNavigate()
   const { state } = useAppContext()
   const { setOrganizations, setSelectedOrganization, setLoading, setError } = useAppActions()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
