@@ -17,7 +17,7 @@ import dataRoutes from './routes/data';
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.NODE_ENV === 'test' ? 0 : parseInt(process.env.PORT || '3001', 10);
+const PORT = process.env.NODE_ENV === 'test' ? 0 : 3001;
 
 // Initialize database connection
 export const prisma = connectDatabase();
