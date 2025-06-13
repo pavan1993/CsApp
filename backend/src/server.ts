@@ -66,6 +66,13 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`📊 Customer Success Analytics API`);
     console.log(`🌍 Environment: ${config.nodeEnv}`);
   });
+} else {
+  // Create a mock server object for tests
+  server = {
+    close: () => {
+      // Mock close function for tests
+    }
+  };
 }
 
 // Export app for testing
