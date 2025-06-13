@@ -28,10 +28,11 @@ router.get('/last-upload/:organization', async (req, res) => {
     const { organization } = req.params;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const lastUpload = await analyticsService.getLastUploadDate(
@@ -62,18 +63,20 @@ router.delete('/cleanup/:organization', async (req, res) => {
     const { daysToKeep } = req.query;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const daysToKeepNum = daysToKeep ? parseInt(daysToKeep as string, 10) : 90;
     if (isNaN(daysToKeepNum) || daysToKeepNum < 1 || daysToKeepNum > 365) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'daysToKeep must be a number between 1 and 365',
       });
+      return;
     }
 
     const result = await analyticsService.cleanupOldData(

@@ -1,6 +1,7 @@
 import { prisma } from '../server';
 import { TechnicalDebtService } from './technicalDebtService';
-import { TicketSeverity } from '@prisma/client';
+import { TicketSeverity, SupportTicket, Usage, ProductAreaMapping } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export interface TicketBreakdown {
   productArea: string;
@@ -66,7 +67,7 @@ export class AnalyticsService {
     }
 
     // Get all tickets for the organization
-    const tickets = await prisma.ticket.findMany({
+    const tickets = await prisma.supportTicket.findMany({
       where: whereClause,
       include: {
         productAreaMapping: true,
@@ -93,20 +94,21 @@ export class AnalyticsService {
       }
 
       const breakdown = productAreaMap.get(productArea)!;
-      breakdown.severityCounts[ticket.severity]++;
+      breakdown.severityCounts[ticket.severity as TicketSeverity]++;
       breakdown.totalTickets++;
     }
 
     // Calculate average resolution times
     for (const [productArea, breakdown] of productAreaMap) {
       const resolvedTickets = tickets.filter(
-        t => t.productAreaMapping?.productArea === productArea && 
-        t.status === 'RESOLVED' && 
-        t.resolvedAt
+        (t: SupportTicket & { productAreaMapping: ProductAreaMapping | null }) => 
+          t.productAreaMapping?.productArea === productArea && 
+          t.status === 'RESOLVED' && 
+          t.resolvedAt
       );
 
       if (resolvedTickets.length > 0) {
-        const totalResolutionTime = resolvedTickets.reduce((sum, ticket) => {
+        const totalResolutionTime = resolvedTickets.reduce((sum: number, ticket: SupportTicket) => {
           const resolutionTime = ticket.resolvedAt!.getTime() - ticket.createdAt.getTime();
           return sum + resolutionTime;
         }, 0);
@@ -138,7 +140,7 @@ export class AnalyticsService {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      const ticketCount = await prisma.ticket.count({
+      const ticketCount = await prisma.supportTicket.count({
         where: {
           organization,
           productAreaMapping: { productArea },
@@ -147,7 +149,7 @@ export class AnalyticsService {
       });
 
       // Get usage data
-      const currentUsage = await prisma.usageData.findFirst({
+      const currentUsage = await prisma.usage.findFirst({
         where: {
           organization,
           productAreaMapping: { productArea },
@@ -155,7 +157,7 @@ export class AnalyticsService {
         orderBy: { createdAt: 'desc' },
       });
 
-      const previousUsage = await prisma.usageData.findFirst({
+      const previousUsage = await prisma.usage.findFirst({
         where: {
           organization,
           productAreaMapping: { productArea },
@@ -164,8 +166,8 @@ export class AnalyticsService {
         orderBy: { createdAt: 'desc' },
       });
 
-      const currentUsageAmount = currentUsage?.currentUsage || 0;
-      const previousUsageAmount = previousUsage?.currentUsage || 0;
+      const currentUsageAmount = currentUsage?.currentUsage ? Number(currentUsage.currentUsage) : 0;
+      const previousUsageAmount = previousUsage?.currentUsage ? Number(previousUsage.currentUsage) : 0;
       
       const usageDropPercentage = previousUsageAmount > 0 
         ? ((previousUsageAmount - currentUsageAmount) / previousUsageAmount) * 100
@@ -265,7 +267,7 @@ export class AnalyticsService {
         monthEnd.setMonth(monthEnd.getMonth() + 1);
 
         // Get ticket count for the month
-        const ticketCount = await prisma.ticket.count({
+        const ticketCount = await prisma.supportTicket.count({
           where: {
             organization,
             productAreaMapping: { productArea },
@@ -277,7 +279,7 @@ export class AnalyticsService {
         });
 
         // Get usage data for the month
-        const usageData = await prisma.usageData.findFirst({
+        const usageData = await prisma.usage.findFirst({
           where: {
             organization,
             productAreaMapping: { productArea },
@@ -305,8 +307,8 @@ export class AnalyticsService {
         monthlyData.push({
           date: monthStart.toISOString().substring(0, 7), // YYYY-MM format
           ticketCount,
-          usageAmount: usageData?.currentUsage || 0,
-          debtScore: debtAnalysis?.debtScore,
+          usageAmount: usageData?.currentUsage ? Number(usageData.currentUsage) : 0,
+          debtScore: debtAnalysis?.debtScore ? Number(debtAnalysis.debtScore) : undefined,
         });
       }
 
@@ -314,15 +316,15 @@ export class AnalyticsService {
       const currentMonth = monthlyData[0];
       const previousMonth = monthlyData[1];
       
-      const ticketChange = previousMonth 
+      const ticketChange = previousMonth && currentMonth
         ? ((currentMonth.ticketCount - previousMonth.ticketCount) / Math.max(previousMonth.ticketCount, 1)) * 100
         : 0;
       
-      const usageChange = previousMonth 
+      const usageChange = previousMonth && currentMonth
         ? ((currentMonth.usageAmount - previousMonth.usageAmount) / Math.max(previousMonth.usageAmount, 1)) * 100
         : 0;
 
-      const debtScoreChange = previousMonth && currentMonth.debtScore && previousMonth.debtScore
+      const debtScoreChange = previousMonth && currentMonth && currentMonth.debtScore && previousMonth.debtScore
         ? ((currentMonth.debtScore - previousMonth.debtScore) / previousMonth.debtScore) * 100
         : undefined;
 
@@ -362,26 +364,26 @@ export class AnalyticsService {
    * Get all organizations
    */
   async getOrganizations(): Promise<string[]> {
-    const organizations = await prisma.ticket.findMany({
+    const organizations = await prisma.supportTicket.findMany({
       select: { organization: true },
       distinct: ['organization'],
       orderBy: { organization: 'asc' },
     });
 
-    return organizations.map(org => org.organization);
+    return organizations.map((org: { organization: string }) => org.organization);
   }
 
   /**
    * Get last upload date for an organization
    */
   async getLastUploadDate(organization: string): Promise<{ tickets?: Date; usage?: Date }> {
-    const lastTicket = await prisma.ticket.findFirst({
+    const lastTicket = await prisma.supportTicket.findFirst({
       where: { organization },
       orderBy: { createdAt: 'desc' },
       select: { createdAt: true },
     });
 
-    const lastUsage = await prisma.usageData.findFirst({
+    const lastUsage = await prisma.usage.findFirst({
       where: { organization },
       orderBy: { createdAt: 'desc' },
       select: { createdAt: true },
@@ -404,14 +406,14 @@ export class AnalyticsService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
-    const ticketsDeleted = await prisma.ticket.deleteMany({
+    const ticketsDeleted = await prisma.supportTicket.deleteMany({
       where: {
         organization,
         createdAt: { lt: cutoffDate },
       },
     });
 
-    const usageDeleted = await prisma.usageData.deleteMany({
+    const usageDeleted = await prisma.usage.deleteMany({
       where: {
         organization,
         createdAt: { lt: cutoffDate },
