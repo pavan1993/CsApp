@@ -20,7 +20,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   }
 
   return (
-    <div className={clsx('flex items-center justify-center', className)}>
+    <div className={clsx('flex items-center justify-center', className)} data-testid="loading-spinner">
       <div className="flex flex-col items-center space-y-2">
         <Loader2 className={clsx('animate-spin text-blue-600', sizeClasses[size])} />
         {text && (

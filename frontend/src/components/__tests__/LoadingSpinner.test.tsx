@@ -7,7 +7,7 @@ describe('LoadingSpinner', () => {
   it('renders with default props', () => {
     render(<LoadingSpinner />)
     
-    const spinner = screen.getByRole('generic')
+    const spinner = screen.getByTestId('loading-spinner')
     expect(spinner).toBeInTheDocument()
   })
 

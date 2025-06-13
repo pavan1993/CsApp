@@ -1,35 +1,56 @@
 import React from 'react'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
-import { render, mockOrganization } from '../../utils/testUtils'
+import { render } from '@testing-library/react'
+import { MemoryRouter } from 'react-router-dom'
 import Sidebar from '../Sidebar'
+import { AppProvider } from '../../context/AppContext'
 import apiService from '../../services/api'
 
 // Mock the API service
 vi.mock('../../services/api')
 const mockApiService = vi.mocked(apiService)
 
+const renderSidebar = () => {
+  return render(
+    <AppProvider>
+      <MemoryRouter>
+        <Sidebar />
+      </MemoryRouter>
+    </AppProvider>
+  )
+}
+
 describe('Sidebar', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
-  it('renders organization selector', () => {
+  it('renders organization selector', async () => {
     mockApiService.getOrganizations.mockResolvedValue([])
     
-    render(<Sidebar />)
+    renderSidebar()
     
     expect(screen.getByText('Organization')).toBeInTheDocument()
-    expect(screen.getByText('Select organization')).toBeInTheDocument()
+    
+    // Wait for loading to finish
+    await waitFor(() => {
+      expect(screen.getByText('No organizations available. Upload some data to get started.')).toBeInTheDocument()
+    })
   })
 
   it('loads and displays organizations', async () => {
     const orgs = ['Org 1', 'Org 2']
     mockApiService.getOrganizations.mockResolvedValue(orgs)
     
-    render(<Sidebar />)
+    renderSidebar()
     
     await waitFor(() => {
       expect(mockApiService.getOrganizations).toHaveBeenCalled()
+    })
+    
+    // Should show the first organization as selected
+    await waitFor(() => {
+      expect(screen.getByText('Org 1')).toBeInTheDocument()
     })
   })
 
@@ -37,17 +58,21 @@ describe('Sidebar', () => {
     const orgs = ['Org 1', 'Org 2']
     mockApiService.getOrganizations.mockResolvedValue(orgs)
     
-    render(<Sidebar />)
+    renderSidebar()
     
     await waitFor(() => {
       expect(mockApiService.getOrganizations).toHaveBeenCalled()
     })
     
-    const dropdown = screen.getByRole('button')
+    // Wait for organizations to load and find the dropdown button
+    await waitFor(() => {
+      expect(screen.getByText('Org 1')).toBeInTheDocument()
+    })
+    
+    const dropdown = screen.getByRole('button', { name: /org 1/i })
     fireEvent.click(dropdown)
     
     await waitFor(() => {
-      expect(screen.getByText('Org 1')).toBeInTheDocument()
       expect(screen.getByText('Org 2')).toBeInTheDocument()
     })
   })
@@ -55,7 +80,7 @@ describe('Sidebar', () => {
   it('shows quick actions section', () => {
     mockApiService.getOrganizations.mockResolvedValue([])
     
-    render(<Sidebar />)
+    renderSidebar()
     
     expect(screen.getByText('Quick Actions')).toBeInTheDocument()
   })
@@ -63,13 +88,15 @@ describe('Sidebar', () => {
   it('handles API error gracefully', async () => {
     mockApiService.getOrganizations.mockRejectedValue(new Error('API Error'))
     
-    render(<Sidebar />)
+    renderSidebar()
     
     await waitFor(() => {
       expect(mockApiService.getOrganizations).toHaveBeenCalled()
     })
     
     // Should not crash and should show appropriate message
-    expect(screen.getByText('No organizations available. Upload some data to get started.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByText('No organizations available. Upload some data to get started.')).toBeInTheDocument()
+    })
   })
 })

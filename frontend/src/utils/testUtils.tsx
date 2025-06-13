@@ -1,6 +1,6 @@
 import React, { ReactElement } from 'react'
 import { render, RenderOptions } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
+import { MemoryRouter } from 'react-router-dom'
 import { AppProvider } from '../context/AppContext'
 import ErrorBoundary from '../components/ErrorBoundary'
 
@@ -9,9 +9,9 @@ const AllTheProviders: React.FC<{ children: React.ReactNode }> = ({ children }) 
   return (
     <ErrorBoundary>
       <AppProvider>
-        <BrowserRouter>
+        <MemoryRouter>
           {children}
-        </BrowserRouter>
+        </MemoryRouter>
       </AppProvider>
     </ErrorBoundary>
   )

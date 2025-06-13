@@ -1,7 +1,12 @@
 import React from 'react'
 import { renderHook, act } from '@testing-library/react'
 import { AppProvider, useAppContext, useAppActions } from '../AppContext'
-import { mockOrganization, mockUser } from '../../utils/testUtils'
+
+const mockOrganization = (overrides = {}) => ({
+  id: 'org-1',
+  name: 'Test Organization',
+  ...overrides,
+})
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
   <AppProvider>{children}</AppProvider>
@@ -21,70 +26,85 @@ describe('AppContext', () => {
   })
 
   it('updates loading state', () => {
-    const { result } = renderHook(() => useAppActions(), { wrapper })
-    const { result: contextResult } = renderHook(() => useAppContext(), { wrapper })
+    const { result } = renderHook(() => {
+      const context = useAppContext()
+      const actions = useAppActions()
+      return { context, actions }
+    }, { wrapper })
     
     act(() => {
-      result.current.setLoading(true)
+      result.current.actions.setLoading(true)
     })
     
-    expect(contextResult.current.state.isLoading).toBe(true)
+    expect(result.current.context.state.isLoading).toBe(true)
   })
 
   it('updates error state', () => {
-    const { result } = renderHook(() => useAppActions(), { wrapper })
-    const { result: contextResult } = renderHook(() => useAppContext(), { wrapper })
+    const { result } = renderHook(() => {
+      const context = useAppContext()
+      const actions = useAppActions()
+      return { context, actions }
+    }, { wrapper })
     
     act(() => {
-      result.current.setError('Test error')
+      result.current.actions.setError('Test error')
     })
     
-    expect(contextResult.current.state.error).toBe('Test error')
+    expect(result.current.context.state.error).toBe('Test error')
   })
 
   it('updates organizations', () => {
-    const { result } = renderHook(() => useAppActions(), { wrapper })
-    const { result: contextResult } = renderHook(() => useAppContext(), { wrapper })
+    const { result } = renderHook(() => {
+      const context = useAppContext()
+      const actions = useAppActions()
+      return { context, actions }
+    }, { wrapper })
     
     const orgs = [mockOrganization()]
     
     act(() => {
-      result.current.setOrganizations(orgs)
+      result.current.actions.setOrganizations(orgs)
     })
     
-    expect(contextResult.current.state.organizations).toEqual(orgs)
+    expect(result.current.context.state.organizations).toEqual(orgs)
   })
 
   it('updates selected organization', () => {
-    const { result } = renderHook(() => useAppActions(), { wrapper })
-    const { result: contextResult } = renderHook(() => useAppContext(), { wrapper })
+    const { result } = renderHook(() => {
+      const context = useAppContext()
+      const actions = useAppActions()
+      return { context, actions }
+    }, { wrapper })
     
     const org = mockOrganization()
     
     act(() => {
-      result.current.setSelectedOrganization(org)
+      result.current.actions.setSelectedOrganization(org)
     })
     
-    expect(contextResult.current.state.selectedOrganization).toEqual(org)
+    expect(result.current.context.state.selectedOrganization).toEqual(org)
   })
 
   it('resets state', () => {
-    const { result } = renderHook(() => useAppActions(), { wrapper })
-    const { result: contextResult } = renderHook(() => useAppContext(), { wrapper })
+    const { result } = renderHook(() => {
+      const context = useAppContext()
+      const actions = useAppActions()
+      return { context, actions }
+    }, { wrapper })
     
     // Set some state first
     act(() => {
-      result.current.setLoading(true)
-      result.current.setError('Test error')
-      result.current.setOrganizations([mockOrganization()])
+      result.current.actions.setLoading(true)
+      result.current.actions.setError('Test error')
+      result.current.actions.setOrganizations([mockOrganization()])
     })
     
     // Reset state
     act(() => {
-      result.current.resetState()
+      result.current.actions.resetState()
     })
     
-    expect(contextResult.current.state).toEqual({
+    expect(result.current.context.state).toEqual({
       selectedOrganization: null,
       organizations: [],
       user: null,
