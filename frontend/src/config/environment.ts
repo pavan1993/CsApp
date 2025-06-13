@@ -46,7 +46,9 @@ console.log('Frontend API Configuration:', {
   apiUrl: config.apiUrl,
   apiTimeout: config.apiTimeout,
   isDevelopment: config.isDevelopment,
-  isProduction: config.isProduction
+  isProduction: config.isProduction,
+  currentOrigin: window.location.origin,
+  env: import.meta.env
 })
 
 export default config

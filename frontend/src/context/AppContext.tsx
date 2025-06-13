@@ -77,10 +77,11 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         // First test the backend connection
         console.log('🔄 Testing backend connection...');
         try {
-          await apiService.testConnection();
-          console.log('✅ Backend connection successful');
+          const testResult = await apiService.testConnection();
+          console.log('✅ Backend connection successful:', testResult);
         } catch (connectionError) {
-          console.warn('⚠️ Backend connection test failed, but continuing...');
+          console.error('⚠️ Backend connection test failed:', connectionError);
+          console.error('This might be a CORS issue or the backend is not running');
         }
         
         // Try to load organizations
