@@ -91,10 +91,11 @@ router.get('/technical-debt/:organization/:productArea', async (req, res) => {
     const { organization, productArea } = req.params;
 
     if (!organization || !productArea) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization and product area are required',
       });
+      return;
     }
 
     const result = await technicalDebtService.calculateTechnicalDebt(
@@ -125,10 +126,11 @@ router.get('/technical-debt/:organization', async (req, res) => {
     const { organization } = req.params;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const results = await technicalDebtService.calculateOrganizationTechnicalDebt(
@@ -161,18 +163,20 @@ router.get('/technical-debt-history/:organization', async (req, res) => {
     const { productArea, limit } = req.query;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const limitNum = limit ? parseInt(limit as string, 10) : 10;
     if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Limit must be a number between 1 and 100',
       });
+      return;
     }
 
     const history = await technicalDebtService.getHistoricalAnalysis(
@@ -202,10 +206,11 @@ router.get('/tickets/:organization', async (req, res) => {
     const { startDate, endDate } = req.query;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const start = startDate ? new Date(startDate as string) : undefined;
@@ -213,24 +218,27 @@ router.get('/tickets/:organization', async (req, res) => {
 
     // Validate dates
     if (start && isNaN(start.getTime())) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Invalid start date format',
       });
+      return;
     }
 
     if (end && isNaN(end.getTime())) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Invalid end date format',
       });
+      return;
     }
 
     if (start && end && start > end) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Start date must be before end date',
       });
+      return;
     }
 
     const breakdown = await analyticsService.getTicketBreakdown(
@@ -288,10 +296,11 @@ router.get('/usage-correlation/:organization', async (req, res) => {
     const { organization } = req.params;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const correlations = await analyticsService.getUsageCorrelation(
@@ -335,10 +344,11 @@ router.get('/technical-debt/:organization', async (req, res) => {
     const { organization } = req.params;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const analysis = await analyticsService.getTechnicalDebtAnalysis(
@@ -366,18 +376,20 @@ router.get('/trends/:organization', async (req, res) => {
     const { months } = req.query;
 
     if (!organization) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Organization is required',
       });
+      return;
     }
 
     const monthsNum = months ? parseInt(months as string, 10) : 6;
     if (isNaN(monthsNum) || monthsNum < 1 || monthsNum > 24) {
-      return res.status(400).json({
+      res.status(400).json({
         success: false,
         message: 'Months must be a number between 1 and 24',
       });
+      return;
     }
 
     const trends = await analyticsService.getTrendAnalysis(
