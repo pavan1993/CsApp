@@ -18,7 +18,7 @@ import dataRoutes from './routes/data';
 
 // Initialize Express app
 const app = express();
-const PORT = process.env.NODE_ENV === 'test' ? 0 : 5001;
+const PORT = process.env.NODE_ENV === 'test' ? 0 : config.port;
 
 // Initialize database connection
 export const prisma = connectDatabase();
@@ -61,10 +61,20 @@ app.use('*', (req: express.Request, res: express.Response) => {
 // Start server only if not in test environment
 let server: any = null;
 if (process.env.NODE_ENV !== 'test') {
-  server = app.listen(PORT, () => {
+  server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Customer Success Analytics API`);
     console.log(`🌍 Environment: ${config.nodeEnv}`);
+    console.log(`🔗 API URL: http://localhost:${PORT}`);
+  });
+  
+  server.on('error', (error: any) => {
+    if (error.code === 'EADDRINUSE') {
+      console.error(`❌ Port ${PORT} is already in use. Please kill the process using this port or use a different port.`);
+      process.exit(1);
+    } else {
+      console.error('❌ Server error:', error);
+    }
   });
 } else {
   // Create a mock server object for tests

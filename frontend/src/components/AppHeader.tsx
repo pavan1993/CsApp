@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { BarChart3, Users, Home, Upload, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
-import config from '../config/environment'
+import { config } from '../config/environment'
 
 const AppHeader: React.FC = () => {
   const location = useLocation()
