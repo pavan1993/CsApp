@@ -1,6 +1,7 @@
 import express from 'express';
 import { prisma } from '../server';
 import { technicalDebtService } from '../services/technicalDebtService';
+import { analyticsService } from '../services/analyticsService';
 
 const router = express.Router();
 
@@ -189,6 +190,230 @@ router.get('/technical-debt-history/:organization', async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to fetch technical debt history',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get ticket breakdown by product area and severity
+router.get('/tickets/:organization', async (req, res) => {
+  try {
+    const { organization } = req.params;
+    const { startDate, endDate } = req.query;
+
+    if (!organization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization is required',
+      });
+    }
+
+    const start = startDate ? new Date(startDate as string) : undefined;
+    const end = endDate ? new Date(endDate as string) : undefined;
+
+    // Validate dates
+    if (start && isNaN(start.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid start date format',
+      });
+    }
+
+    if (end && isNaN(end.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid end date format',
+      });
+    }
+
+    if (start && end && start > end) {
+      return res.status(400).json({
+        success: false,
+        message: 'Start date must be before end date',
+      });
+    }
+
+    const breakdown = await analyticsService.getTicketBreakdown(
+      decodeURIComponent(organization),
+      start,
+      end
+    );
+
+    // Calculate summary statistics
+    const totalTickets = breakdown.reduce((sum, area) => sum + area.totalTickets, 0);
+    const averageResolutionTime = breakdown
+      .filter(area => area.averageResolutionTime !== undefined)
+      .reduce((sum, area, _, arr) => sum + (area.averageResolutionTime! / arr.length), 0);
+
+    const severityTotals = breakdown.reduce(
+      (totals, area) => ({
+        CRITICAL: totals.CRITICAL + area.severityCounts.CRITICAL,
+        SEVERE: totals.SEVERE + area.severityCounts.SEVERE,
+        MODERATE: totals.MODERATE + area.severityCounts.MODERATE,
+        LOW: totals.LOW + area.severityCounts.LOW,
+      }),
+      { CRITICAL: 0, SEVERE: 0, MODERATE: 0, LOW: 0 }
+    );
+
+    res.json({
+      success: true,
+      data: {
+        organization: decodeURIComponent(organization),
+        dateRange: {
+          startDate: start?.toISOString(),
+          endDate: end?.toISOString(),
+        },
+        summary: {
+          totalTickets,
+          totalProductAreas: breakdown.length,
+          averageResolutionTime: Math.round(averageResolutionTime),
+          severityTotals,
+        },
+        breakdown,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching ticket breakdown:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ticket breakdown',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get usage correlation analysis
+router.get('/usage-correlation/:organization', async (req, res) => {
+  try {
+    const { organization } = req.params;
+
+    if (!organization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization is required',
+      });
+    }
+
+    const correlations = await analyticsService.getUsageCorrelation(
+      decodeURIComponent(organization)
+    );
+
+    // Calculate summary metrics
+    const highRiskAreas = correlations.filter(c => c.riskLevel === 'HIGH' || c.riskLevel === 'CRITICAL');
+    const averageCorrelationScore = correlations.reduce((sum, c) => sum + c.correlationScore, 0) / correlations.length;
+    const totalTickets = correlations.reduce((sum, c) => sum + c.ticketCount, 0);
+    const totalCurrentUsage = correlations.reduce((sum, c) => sum + c.currentUsage, 0);
+
+    res.json({
+      success: true,
+      data: {
+        organization: decodeURIComponent(organization),
+        summary: {
+          totalProductAreas: correlations.length,
+          highRiskAreas: highRiskAreas.length,
+          averageCorrelationScore: Math.round(averageCorrelationScore * 100) / 100,
+          totalTickets,
+          totalCurrentUsage,
+        },
+        correlations,
+        highRiskAreas,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching usage correlation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch usage correlation',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get comprehensive technical debt analysis
+router.get('/technical-debt/:organization', async (req, res) => {
+  try {
+    const { organization } = req.params;
+
+    if (!organization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization is required',
+      });
+    }
+
+    const analysis = await analyticsService.getTechnicalDebtAnalysis(
+      decodeURIComponent(organization)
+    );
+
+    res.json({
+      success: true,
+      data: analysis,
+    });
+  } catch (error) {
+    console.error('Error fetching technical debt analysis:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch technical debt analysis',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get historical trend analysis
+router.get('/trends/:organization', async (req, res) => {
+  try {
+    const { organization } = req.params;
+    const { months } = req.query;
+
+    if (!organization) {
+      return res.status(400).json({
+        success: false,
+        message: 'Organization is required',
+      });
+    }
+
+    const monthsNum = months ? parseInt(months as string, 10) : 6;
+    if (isNaN(monthsNum) || monthsNum < 1 || monthsNum > 24) {
+      return res.status(400).json({
+        success: false,
+        message: 'Months must be a number between 1 and 24',
+      });
+    }
+
+    const trends = await analyticsService.getTrendAnalysis(
+      decodeURIComponent(organization),
+      monthsNum
+    );
+
+    // Calculate summary statistics
+    const decliningAreas = trends.filter(t => t.trendIndicator === 'DECLINING').length;
+    const improvingAreas = trends.filter(t => t.trendIndicator === 'IMPROVING').length;
+    const stableAreas = trends.filter(t => t.trendIndicator === 'STABLE').length;
+
+    const averageTicketChange = trends.reduce((sum, t) => sum + t.monthOverMonth.ticketChange, 0) / trends.length;
+    const averageUsageChange = trends.reduce((sum, t) => sum + t.monthOverMonth.usageChange, 0) / trends.length;
+
+    res.json({
+      success: true,
+      data: {
+        organization: decodeURIComponent(organization),
+        analysisMonths: monthsNum,
+        summary: {
+          totalProductAreas: trends.length,
+          decliningAreas,
+          improvingAreas,
+          stableAreas,
+          averageTicketChange: Math.round(averageTicketChange * 100) / 100,
+          averageUsageChange: Math.round(averageUsageChange * 100) / 100,
+        },
+        trends,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching trend analysis:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch trend analysis',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
   }

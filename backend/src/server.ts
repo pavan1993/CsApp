@@ -14,6 +14,7 @@ import healthRoutes from './routes/health';
 import ticketRoutes from './routes/tickets';
 import usageRoutes from './routes/usage';
 import configRoutes from './routes/config';
+import dataRoutes from './routes/data';
 
 // Initialize Express app
 const app = express();
@@ -47,6 +48,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/tickets', ticketRoutes);
 app.use('/api/usage', usageRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/data', dataRoutes);
 
 // Error handling middleware
 app.use(errorHandler);
