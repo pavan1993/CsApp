@@ -1,7 +1,10 @@
 import express from 'express';
-import { prisma } from '../server';
+import { connectDatabase } from '../config/database';
 import { AnalyticsService } from '../services/analyticsService';
 import { TechnicalDebtService } from '../services/technicalDebtService';
+
+// Get database connection
+const prisma = connectDatabase();
 
 // Create service instances
 const analyticsService = new AnalyticsService();
