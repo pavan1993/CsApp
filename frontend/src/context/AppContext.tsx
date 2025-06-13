@@ -73,6 +73,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const loadOrganizations = async () => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true })
+        
+        // First test the backend connection
+        console.log('🔄 Testing backend connection...');
+        try {
+          await apiService.testConnection();
+          console.log('✅ Backend connection successful');
+        } catch (connectionError) {
+          console.warn('⚠️ Backend connection test failed, but continuing...');
+        }
+        
+        // Try to load organizations
         const organizations = await apiService.getOrganizations()
         const orgObjects = organizations.map(name => ({ id: name, name }))
         dispatch({ type: 'SET_ORGANIZATIONS', payload: orgObjects })
@@ -82,8 +93,10 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         if (orgObjects.length > 0) {
           dispatch({ type: 'SET_SELECTED_ORGANIZATION', payload: orgObjects[0] })
         }
+        
+        console.log('✅ Organizations loaded successfully:', orgObjects);
       } catch (error) {
-        console.error('Failed to load organizations:', error)
+        console.error('❌ Failed to load organizations:', error)
         dispatch({ type: 'SET_ERROR', payload: 'Failed to load organizations. Backend may be unavailable.' })
         
         // Provide fallback demo organizations so the app is still usable
@@ -93,6 +106,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         ]
         dispatch({ type: 'SET_ORGANIZATIONS', payload: demoOrganizations })
         dispatch({ type: 'SET_SELECTED_ORGANIZATION', payload: demoOrganizations[0] })
+        console.log('🔄 Using demo organizations as fallback');
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false })
       }

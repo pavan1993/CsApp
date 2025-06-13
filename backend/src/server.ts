@@ -64,12 +64,19 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📊 Customer Success Analytics API`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-    console.log(`🔗 API URL: http://localhost:${PORT}`);
+    console.log(`🔗 API URL: http://localhost:${PORT}/api`);
+    console.log(`🔗 Frontend should connect to: http://localhost:${PORT}/api`);
+    console.log(`📋 Available routes:`);
+    console.log(`   GET  /api/health`);
+    console.log(`   GET  /api/analytics/organizations`);
+    console.log(`   POST /api/tickets/upload`);
+    console.log(`   POST /api/usage/upload`);
   });
   
   server.on('error', (error: any) => {
     if (error.code === 'EADDRINUSE') {
       console.error(`❌ Port ${PORT} is already in use. Please kill the process using this port or use a different port.`);
+      console.error(`   Try: lsof -ti:${PORT} | xargs kill -9`);
       process.exit(1);
     } else {
       console.error('❌ Server error:', error);

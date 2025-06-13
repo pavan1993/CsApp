@@ -111,7 +111,27 @@ class ApiService {
 
   // Specific API methods
   async getOrganizations(): Promise<string[]> {
-    return this.get('/analytics/organizations')
+    console.log('🔄 Fetching organizations from:', `${config.apiUrl}/analytics/organizations`);
+    try {
+      const result = await this.get('/analytics/organizations');
+      console.log('✅ Organizations fetched successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch organizations:', error);
+      throw error;
+    }
+  }
+
+  async testConnection(): Promise<any> {
+    console.log('🔄 Testing backend connection...');
+    try {
+      const result = await this.get('/analytics/test');
+      console.log('✅ Backend connection test successful:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Backend connection test failed:', error);
+      throw error;
+    }
   }
 
   async getHealthCheck(): Promise<{ status: string; timestamp: string }> {
