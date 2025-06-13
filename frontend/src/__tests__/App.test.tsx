@@ -1,6 +1,6 @@
 import React from 'react'
 import { screen } from '@testing-library/react'
-import { renderWithoutRouter } from '../utils/testUtils'
+import { render } from '../utils/testUtils'
 import App from '../App'
 
 // Mock the pages to avoid complex dependencies
@@ -24,7 +24,7 @@ vi.mock('../services/api', () => ({
 }))
 
 const renderApp = () => {
-  return renderWithoutRouter(<App />)
+  return render(<App />)
 }
 
 describe('App', () => {

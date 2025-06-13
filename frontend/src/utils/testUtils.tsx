@@ -22,7 +22,9 @@ const ProvidersWithoutRouter: React.FC<{ children: React.ReactNode }> = ({ child
   return (
     <ErrorBoundary>
       <AppProvider>
-        {children}
+        <MemoryRouter>
+          {children}
+        </MemoryRouter>
       </AppProvider>
     </ErrorBoundary>
   )
