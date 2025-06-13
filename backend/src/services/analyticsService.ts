@@ -365,7 +365,7 @@ export class AnalyticsService {
 
     return {
       tickets: lastTicket?.createdAt,
-      usage: lastUsage?.createdAt,
+      usage: undefined,
     };
   }
 
