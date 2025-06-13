@@ -17,14 +17,30 @@ const AllTheProviders: React.FC<{ children: React.ReactNode }> = ({ children }) 
   )
 }
 
+// Providers without router for components that have their own router
+const ProvidersWithoutRouter: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  return (
+    <ErrorBoundary>
+      <AppProvider>
+        {children}
+      </AppProvider>
+    </ErrorBoundary>
+  )
+}
+
 const customRender = (
   ui: ReactElement,
   options?: Omit<RenderOptions, 'wrapper'>
 ) => render(ui, { wrapper: AllTheProviders, ...options })
 
+const renderWithoutRouter = (
+  ui: ReactElement,
+  options?: Omit<RenderOptions, 'wrapper'>
+) => render(ui, { wrapper: ProvidersWithoutRouter, ...options })
+
 // Re-export everything
 export * from '@testing-library/react'
-export { customRender as render }
+export { customRender as render, renderWithoutRouter }
 
 // Mock data generators
 export const mockOrganization = (overrides = {}) => ({

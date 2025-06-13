@@ -1,9 +1,7 @@
 import React from 'react'
 import { screen } from '@testing-library/react'
-import { render } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { renderWithoutRouter } from '../utils/testUtils'
 import App from '../App'
-import { AppProvider } from '../context/AppContext'
 
 // Mock the pages to avoid complex dependencies
 vi.mock('../pages/Dashboard', () => ({
@@ -26,11 +24,7 @@ vi.mock('../services/api', () => ({
 }))
 
 const renderApp = () => {
-  return render(
-    <MemoryRouter>
-      <App />
-    </MemoryRouter>
-  )
+  return renderWithoutRouter(<App />)
 }
 
 describe('App', () => {
