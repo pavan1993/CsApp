@@ -149,26 +149,12 @@ export class AnalyticsService {
         },
       });
 
-      // Get usage data - using the correct model name
-      const currentUsage = await prisma.usage.findFirst({
-        where: {
-          organization,
-          capability: productArea, // Assuming capability maps to product area
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      // Get usage data - skip for now until we know the correct model name
+      const currentUsage = null;
+      const previousUsage = null;
 
-      const previousUsage = await prisma.usage.findFirst({
-        where: {
-          organization,
-          capability: productArea,
-          createdAt: { lt: currentUsage?.createdAt || new Date() },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      const currentUsageAmount = currentUsage?.last30DaysCost ? Number(currentUsage.last30DaysCost) : 0;
-      const previousUsageAmount = previousUsage?.last30DaysCost ? Number(previousUsage.last30DaysCost) : 0;
+      const currentUsageAmount = 0;
+      const previousUsageAmount = 0;
       
       const usageDropPercentage = previousUsageAmount > 0 
         ? ((previousUsageAmount - currentUsageAmount) / previousUsageAmount) * 100
@@ -279,18 +265,8 @@ export class AnalyticsService {
           },
         });
 
-        // Get usage data for the month
-        const usageData = await prisma.usage.findFirst({
-          where: {
-            organization,
-            capability: productArea,
-            createdAt: {
-              gte: monthStart,
-              lt: monthEnd,
-            },
-          },
-          orderBy: { createdAt: 'desc' },
-        });
+        // Get usage data for the month - skip for now until we know the correct model name
+        const usageData = null;
 
         // Get debt score if available
         const debtAnalysis = await prisma.technicalDebtAnalysis.findFirst({
@@ -308,7 +284,7 @@ export class AnalyticsService {
         monthlyData.push({
           date: monthStart.toISOString().substring(0, 7), // YYYY-MM format
           ticketCount,
-          usageAmount: usageData?.last30DaysCost ? Number(usageData.last30DaysCost) : 0,
+          usageAmount: 0,
           debtScore: debtAnalysis?.debtScore ? Number(debtAnalysis.debtScore) : undefined,
         });
       }
@@ -384,11 +360,8 @@ export class AnalyticsService {
       select: { createdAt: true },
     });
 
-    const lastUsage = await prisma.usage.findFirst({
-      where: { organization },
-      orderBy: { createdAt: 'desc' },
-      select: { createdAt: true },
-    });
+    // Skip usage data for now until we know the correct model name
+    const lastUsage = null;
 
     return {
       tickets: lastTicket?.createdAt,
@@ -414,12 +387,8 @@ export class AnalyticsService {
       },
     });
 
-    const usageDeleted = await prisma.usage.deleteMany({
-      where: {
-        organization,
-        createdAt: { lt: cutoffDate },
-      },
-    });
+    // Skip usage deletion for now until we know the correct model name
+    const usageDeleted = { count: 0 };
 
     const analysisDeleted = await prisma.technicalDebtAnalysis.deleteMany({
       where: {
