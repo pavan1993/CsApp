@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { FileText, BarChart3, AlertCircle, CheckCircle, Clock } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
+import LoadingSpinner from '../components/LoadingSpinner'
 import CSVUploader from '../components/CSVUploader'
 import UploadHistory from '../components/UploadHistory'
 import ImportStatus from '../components/ImportStatus'
@@ -50,6 +51,21 @@ const Import: React.FC = () => {
     setShowDataPreview(true)
   }
 
+  if (state.isLoading) {
+    return <LoadingSpinner text="Loading import page..." />
+  }
+
+  if (state.error) {
+    return (
+      <div className="px-4 py-6 sm:px-0">
+        <div className="border-4 border-dashed border-red-200 rounded-lg p-6">
+          <h2 className="text-2xl font-bold text-red-900 mb-6">Error</h2>
+          <p className="text-red-600">{state.error}</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!state.selectedOrganization) {
     return (
       <div className="px-4 py-6 sm:px-0">
@@ -59,6 +75,11 @@ const Import: React.FC = () => {
           <p className="mt-1 text-sm text-gray-500">
             Please select an organization from the sidebar to import data.
           </p>
+          {state.organizations.length > 0 && (
+            <p className="mt-2 text-xs text-gray-400">
+              Available organizations: {state.organizations.map(org => org.name).join(', ')}
+            </p>
+          )}
         </div>
       </div>
     )

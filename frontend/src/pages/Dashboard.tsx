@@ -1,7 +1,25 @@
 import React from 'react'
 import { Users, TrendingUp, DollarSign, Target } from 'lucide-react'
+import { useAppContext } from '../context/AppContext'
+import LoadingSpinner from '../components/LoadingSpinner'
 
 const Dashboard: React.FC = () => {
+  const { state } = useAppContext()
+
+  if (state.isLoading) {
+    return <LoadingSpinner text="Loading dashboard..." />
+  }
+
+  if (state.error) {
+    return (
+      <div className="px-4 py-6 sm:px-0">
+        <div className="border-4 border-dashed border-red-200 rounded-lg p-6">
+          <h2 className="text-2xl font-bold text-red-900 mb-6">Error</h2>
+          <p className="text-red-600">{state.error}</p>
+        </div>
+      </div>
+    )
+  }
   const stats = [
     {
       name: 'Total Customers',
