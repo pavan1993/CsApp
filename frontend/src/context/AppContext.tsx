@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useReducer, ReactNode } from 'react'
+import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react'
+import { apiService } from '../services/api'
 
 // Types
 export interface Organization {
@@ -66,6 +67,26 @@ const AppContext = createContext<{
 // Provider
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState)
+
+  // Load organizations on mount
+  useEffect(() => {
+    const loadOrganizations = async () => {
+      try {
+        dispatch({ type: 'SET_LOADING', payload: true })
+        const organizations = await apiService.getOrganizations()
+        const orgObjects = organizations.map(name => ({ id: name, name }))
+        dispatch({ type: 'SET_ORGANIZATIONS', payload: orgObjects })
+        dispatch({ type: 'SET_ERROR', payload: null })
+      } catch (error) {
+        console.error('Failed to load organizations:', error)
+        dispatch({ type: 'SET_ERROR', payload: 'Failed to load organizations' })
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false })
+      }
+    }
+
+    loadOrganizations()
+  }, [])
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>

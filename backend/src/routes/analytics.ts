@@ -5,6 +5,25 @@ import { analyticsService } from '../services/analyticsService';
 
 const router = express.Router();
 
+// Get all organizations
+router.get('/organizations', async (req, res) => {
+  try {
+    const organizations = await analyticsService.getOrganizations();
+
+    res.json({
+      success: true,
+      data: organizations,
+    });
+  } catch (error) {
+    console.error('Error fetching organizations:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch organizations',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Get dashboard analytics
 router.get('/dashboard', async (req, res) => {
   try {
