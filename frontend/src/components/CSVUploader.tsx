@@ -120,11 +120,19 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
   }
 
   const handleUpload = async () => {
+    console.log('🔄 Upload button clicked');
+    console.log('🔄 Selected file:', selectedFile?.name);
+    console.log('🔄 Selected organization:', state.selectedOrganization?.name);
+    console.log('🔄 Upload type:', uploadType);
+
     if (!selectedFile || !state.selectedOrganization) {
-      onUploadError?.('Please select a file and organization')
-      return
+      const errorMsg = 'Please select a file and organization';
+      console.error('❌ Upload validation failed:', errorMsg);
+      onUploadError?.(errorMsg);
+      return;
     }
 
+    console.log('✅ Starting upload process...');
     setUploadProgress({ progress: 0, status: 'uploading', message: 'Uploading file...' })
     onUploadProgress?.(0, 'uploading')
 
@@ -138,15 +146,18 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         })
       }, 200)
 
+      console.log('🔄 Calling upload method...');
       const uploadMethod = uploadType === 'tickets' 
         ? apiService.uploadTickets 
         : apiService.uploadUsage
 
       const result = await uploadMethod(state.selectedOrganization.name, selectedFile)
+      console.log('✅ Upload method completed:', result);
       
       clearInterval(progressInterval)
       
       // Validation phase
+      console.log('🔄 Starting validation phase...');
       setUploadProgress({ progress: 95, status: 'validating', message: 'Validating data...' })
       onUploadProgress?.(95, 'validating')
       
@@ -170,6 +181,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         invalidRows: 2
       }
       
+      console.log('✅ Calling onUploadComplete...');
       onUploadComplete?.({
         ...result,
         validation: mockValidationResult,
@@ -178,6 +190,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
       
       // Reset after success
       setTimeout(() => {
+        console.log('🔄 Resetting upload state...');
         setSelectedFile(null)
         setUploadProgress({ progress: 0, status: 'idle' })
         if (fileInputRef.current) {
@@ -186,6 +199,8 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
       }, 2000)
 
     } catch (error: any) {
+      console.error('❌ Upload failed with error:', error);
+      clearInterval(progressInterval);
       setUploadProgress({ 
         progress: 0, 
         status: 'error', 

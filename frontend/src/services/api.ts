@@ -178,29 +178,63 @@ class ApiService {
   }
 
   async uploadTickets(organization: string, file: File): Promise<{ message: string }> {
+    console.log('🔄 Uploading tickets file:', file.name, 'for organization:', organization);
     const formData = new FormData()
     formData.append('file', file)
     formData.append('organization', organization)
 
-    const response = await this.client.post('/tickets/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-    return response.data
+    try {
+      const response = await this.client.post('/tickets/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      console.log('✅ Tickets upload response:', response.data);
+      
+      // Handle the backend response format: { success: true, data: T }
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        if (response.data.success) {
+          return response.data.data || response.data;
+        } else {
+          throw new Error(response.data.message || 'Upload failed');
+        }
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Tickets upload failed:', error);
+      throw error;
+    }
   }
 
   async uploadUsage(organization: string, file: File): Promise<{ message: string }> {
+    console.log('🔄 Uploading usage file:', file.name, 'for organization:', organization);
     const formData = new FormData()
     formData.append('file', file)
     formData.append('organization', organization)
 
-    const response = await this.client.post('/usage/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    })
-    return response.data
+    try {
+      const response = await this.client.post('/usage/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      console.log('✅ Usage upload response:', response.data);
+      
+      // Handle the backend response format: { success: true, data: T }
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        if (response.data.success) {
+          return response.data.data || response.data;
+        } else {
+          throw new Error(response.data.message || 'Upload failed');
+        }
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Usage upload failed:', error);
+      throw error;
+    }
   }
 
   async getAnalytics(organization: string, type: string, params?: any) {
