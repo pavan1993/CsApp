@@ -1,0 +1,100 @@
+import React, { createContext, useContext, useReducer, ReactNode } from 'react'
+
+// Types
+export interface Organization {
+  id: string
+  name: string
+}
+
+export interface User {
+  id: string
+  name: string
+  email: string
+}
+
+export interface AppState {
+  selectedOrganization: Organization | null
+  organizations: Organization[]
+  user: User | null
+  isLoading: boolean
+  error: string | null
+}
+
+export type AppAction =
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'SET_ORGANIZATIONS'; payload: Organization[] }
+  | { type: 'SET_SELECTED_ORGANIZATION'; payload: Organization | null }
+  | { type: 'SET_USER'; payload: User | null }
+  | { type: 'RESET_STATE' }
+
+// Initial state
+const initialState: AppState = {
+  selectedOrganization: null,
+  organizations: [],
+  user: null,
+  isLoading: false,
+  error: null,
+}
+
+// Reducer
+function appReducer(state: AppState, action: AppAction): AppState {
+  switch (action.type) {
+    case 'SET_LOADING':
+      return { ...state, isLoading: action.payload }
+    case 'SET_ERROR':
+      return { ...state, error: action.payload, isLoading: false }
+    case 'SET_ORGANIZATIONS':
+      return { ...state, organizations: action.payload }
+    case 'SET_SELECTED_ORGANIZATION':
+      return { ...state, selectedOrganization: action.payload }
+    case 'SET_USER':
+      return { ...state, user: action.payload }
+    case 'RESET_STATE':
+      return initialState
+    default:
+      return state
+  }
+}
+
+// Context
+const AppContext = createContext<{
+  state: AppState
+  dispatch: React.Dispatch<AppAction>
+} | null>(null)
+
+// Provider
+export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [state, dispatch] = useReducer(appReducer, initialState)
+
+  return (
+    <AppContext.Provider value={{ state, dispatch }}>
+      {children}
+    </AppContext.Provider>
+  )
+}
+
+// Hook
+export const useAppContext = () => {
+  const context = useContext(AppContext)
+  if (!context) {
+    throw new Error('useAppContext must be used within an AppProvider')
+  }
+  return context
+}
+
+// Action creators
+export const useAppActions = () => {
+  const { dispatch } = useAppContext()
+
+  return {
+    setLoading: (loading: boolean) => dispatch({ type: 'SET_LOADING', payload: loading }),
+    setError: (error: string | null) => dispatch({ type: 'SET_ERROR', payload: error }),
+    setOrganizations: (organizations: Organization[]) => 
+      dispatch({ type: 'SET_ORGANIZATIONS', payload: organizations }),
+    setSelectedOrganization: (organization: Organization | null) => 
+      dispatch({ type: 'SET_SELECTED_ORGANIZATION', payload: organization }),
+    setUser: (user: User | null) => dispatch({ type: 'SET_USER', payload: user }),
+    resetState: () => dispatch({ type: 'RESET_STATE' }),
+  }
+}
