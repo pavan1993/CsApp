@@ -1,7 +1,7 @@
 // Environment configuration for the frontend application
 export const config = {
   // API Configuration
-  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001',
+  apiUrl: import.meta.env.VITE_API_URL || 'http://localhost:3001/api',
   apiTimeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
   
   // App Configuration
