@@ -2,7 +2,6 @@ import express from 'express';
 import { prisma } from '../server';
 import { analyticsService } from '../services/analyticsService';
 import { technicalDebtService } from '../services/technicalDebtService';
-import { analyticsService } from '../services/analyticsService';
 
 const router = express.Router();
 
