@@ -94,62 +94,71 @@ const Sidebar: React.FC = () => {
             Quick Actions
           </div>
           
-          {state.selectedOrganization && (
-            <div className="space-y-2">
-              <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log('🔄 Upload Tickets button clicked');
-                  console.log('🔄 Current location:', window.location.pathname);
-                  console.log('🔄 Navigating to /import for tickets');
-                  try {
-                    navigate('/import');
-                    console.log('✅ Navigation to /import successful');
-                  } catch (error) {
-                    console.error('❌ Navigation failed:', error);
-                  }
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Tickets
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log('🔄 Upload Usage Data button clicked');
-                  console.log('🔄 Current location:', window.location.pathname);
-                  console.log('🔄 Navigating to /import for usage');
-                  try {
-                    navigate('/import');
-                    console.log('✅ Navigation to /import successful');
-                  } catch (error) {
-                    console.error('❌ Navigation failed:', error);
-                  }
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Upload Usage Data
-              </button>
-              <button 
-                onClick={(e) => {
-                  e.preventDefault();
-                  console.log('🔄 View Analytics button clicked');
-                  console.log('🔄 Current location:', window.location.pathname);
-                  console.log('🔄 Navigating to /analytics');
-                  try {
-                    navigate('/analytics');
-                    console.log('✅ Navigation to /analytics successful');
-                  } catch (error) {
-                    console.error('❌ Navigation failed:', error);
-                  }
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
-              >
-                <BarChart3 className="w-4 h-4 mr-2" />
-                View Analytics
-              </button>
+          <div className="space-y-2">
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🔄 Upload Tickets button clicked');
+                console.log('🔄 Current location:', window.location.pathname);
+                console.log('🔄 Selected organization:', state.selectedOrganization);
+                console.log('🔄 Navigating to /import for tickets');
+                try {
+                  navigate('/import');
+                  console.log('✅ Navigation to /import successful');
+                } catch (error) {
+                  console.error('❌ Navigation failed:', error);
+                }
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Tickets
+            </button>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🔄 Upload Usage Data button clicked');
+                console.log('🔄 Current location:', window.location.pathname);
+                console.log('🔄 Selected organization:', state.selectedOrganization);
+                console.log('🔄 Navigating to /import for usage');
+                try {
+                  navigate('/import');
+                  console.log('✅ Navigation to /import successful');
+                } catch (error) {
+                  console.error('❌ Navigation failed:', error);
+                }
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Usage Data
+            </button>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('🔄 View Analytics button clicked');
+                console.log('🔄 Current location:', window.location.pathname);
+                console.log('🔄 Selected organization:', state.selectedOrganization);
+                console.log('🔄 Navigating to /analytics');
+                try {
+                  navigate('/analytics');
+                  console.log('✅ Navigation to /analytics successful');
+                } catch (error) {
+                  console.error('❌ Navigation failed:', error);
+                }
+              }}
+              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              View Analytics
+            </button>
+          </div>
+          
+          {!state.selectedOrganization && (
+            <div className="mt-4">
+              <p className="text-xs text-gray-500 px-3 py-2">
+                💡 Tip: Select an organization above to get started
+              </p>
             </div>
           )}
         </div>
