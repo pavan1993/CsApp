@@ -7,6 +7,7 @@ interface CSVUploaderProps {
   uploadType: 'tickets' | 'usage'
   onUploadComplete?: (result: any) => void
   onUploadError?: (error: string) => void
+  onUploadProgress?: (progress: number, status: 'uploading' | 'validating') => void
 }
 
 interface UploadProgress {
@@ -24,7 +25,8 @@ interface ValidationWarning {
 const CSVUploader: React.FC<CSVUploaderProps> = ({
   uploadType,
   onUploadComplete,
-  onUploadError
+  onUploadError,
+  onUploadProgress
 }) => {
   const { state } = useAppContext()
   const [dragActive, setDragActive] = useState(false)
@@ -133,21 +135,55 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
     }
 
     setUploadProgress({ progress: 0, status: 'uploading', message: 'Uploading file...' })
+    onUploadProgress?.(0, 'uploading')
 
     try {
+      // Simulate upload progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = Math.min(prev.progress + 10, 90)
+          onUploadProgress?.(newProgress, 'uploading')
+          return { ...prev, progress: newProgress }
+        })
+      }, 200)
+
       const uploadMethod = uploadType === 'tickets' 
         ? apiService.uploadTickets 
         : apiService.uploadUsage
 
       const result = await uploadMethod(state.selectedOrganization.name, file)
       
+      clearInterval(progressInterval)
+      
+      // Validation phase
+      setUploadProgress({ progress: 95, status: 'validating', message: 'Validating data...' })
+      onUploadProgress?.(95, 'validating')
+      
+      // Simulate validation time
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
       setUploadProgress({ 
         progress: 100, 
         status: 'complete', 
         message: 'Upload completed successfully!' 
       })
+      onUploadProgress?.(100, 'validating')
       
-      onUploadComplete?.(result)
+      // Mock validation result for demo
+      const mockValidationResult = {
+        isValid: true,
+        errors: [],
+        warnings: [],
+        rowCount: 150,
+        validRows: 148,
+        invalidRows: 2
+      }
+      
+      onUploadComplete?.({
+        ...result,
+        validation: mockValidationResult,
+        data: [] // This would contain sample data in a real implementation
+      })
       
       // Reset after success
       setTimeout(() => {
@@ -164,6 +200,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         status: 'error', 
         message: error.message || 'Upload failed' 
       })
+      onUploadProgress?.(0, 'uploading')
       onUploadError?.(error.message || 'Upload failed')
     }
   }
