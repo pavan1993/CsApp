@@ -47,10 +47,33 @@ class ApiService {
     this.client.interceptors.response.use(
       (response: AxiosResponse) => response,
       (error: AxiosError) => {
+        // Enhanced logging for debugging connection issues
+        console.error('API Error Details:', {
+          url: error.config?.url,
+          method: error.config?.method,
+          baseURL: error.config?.baseURL,
+          status: error.response?.status,
+          statusText: error.response?.statusText,
+          message: error.message,
+          code: error.code,
+          response: error.response?.data,
+          isNetworkError: !error.response,
+          isTimeoutError: error.code === 'ECONNABORTED',
+        })
+
         const apiError: ApiError = {
           message: error.message || 'An unexpected error occurred',
           status: error.response?.status || 500,
           code: error.code,
+        }
+
+        // Provide more specific error messages
+        if (!error.response) {
+          apiError.message = `Network error: Cannot connect to backend at ${config.apiUrl}. Is the backend server running on port 3001?`
+        } else if (error.response.status >= 500) {
+          apiError.message = `Server error (${error.response.status}): ${error.response.statusText}`
+        } else if (error.response.status === 404) {
+          apiError.message = `API endpoint not found: ${error.config?.url}`
         }
 
         // Handle specific error cases

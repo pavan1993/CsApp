@@ -89,13 +89,25 @@ const Sidebar: React.FC = () => {
           
           {state.selectedOrganization && (
             <div className="space-y-2">
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200">
+              <button 
+                onClick={() => navigate('/import')}
+                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
+              >
+                <Upload className="w-4 h-4 mr-2" />
                 Upload Tickets
               </button>
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200">
+              <button 
+                onClick={() => navigate('/import')}
+                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
+              >
+                <Upload className="w-4 h-4 mr-2" />
                 Upload Usage Data
               </button>
-              <button className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200">
+              <button 
+                onClick={() => navigate('/analytics')}
+                className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
+              >
+                <FileText className="w-4 h-4 mr-2" />
                 Generate Report
               </button>
             </div>

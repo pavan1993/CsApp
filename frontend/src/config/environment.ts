@@ -41,4 +41,12 @@ export function validateEnvironment(): void {
 // Call validation on import
 validateEnvironment()
 
+// Log the configuration for debugging
+console.log('Frontend API Configuration:', {
+  apiUrl: config.apiUrl,
+  apiTimeout: config.apiTimeout,
+  isDevelopment: config.isDevelopment,
+  isProduction: config.isProduction
+})
+
 export default config
