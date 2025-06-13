@@ -93,10 +93,8 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         let orgArray: string[] = [];
         if (Array.isArray(organizations)) {
           orgArray = organizations;
-        } else if (organizations && typeof organizations === 'object' && 'data' in organizations) {
-          orgArray = Array.isArray(organizations.data) ? organizations.data : [];
         } else {
-          console.warn('⚠️ Unexpected organizations format, using fallback');
+          console.warn('⚠️ Unexpected organizations format:', typeof organizations, organizations);
           orgArray = [];
         }
         

@@ -130,9 +130,16 @@ class ApiService {
   async getOrganizations(): Promise<string[]> {
     console.log('🔄 Fetching organizations from:', `${config.apiUrl}/analytics/organizations`);
     try {
-      const result = await this.get('/analytics/organizations');
+      const result = await this.get<string[]>('/analytics/organizations');
       console.log('✅ Organizations fetched successfully:', result);
-      return result;
+      
+      // Ensure we return an array of strings
+      if (Array.isArray(result)) {
+        return result;
+      } else {
+        console.warn('⚠️ Unexpected organizations format, returning empty array:', result);
+        return [];
+      }
     } catch (error) {
       console.error('❌ Failed to fetch organizations:', error);
       throw error;
