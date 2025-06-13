@@ -149,12 +149,37 @@ export class AnalyticsService {
         },
       });
 
-      // Get usage data - skip for now until we know the correct model name
-      const currentUsage = null;
-      const previousUsage = null;
+      // Get current usage data (last 30 days)
+      const currentUsageData = await prisma.usage.findMany({
+        where: {
+          organization,
+          productArea,
+          createdAt: { gte: thirtyDaysAgo },
+        },
+      });
 
-      const currentUsageAmount = 0;
-      const previousUsageAmount = 0;
+      // Get previous usage data (30-60 days ago)
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+      
+      const previousUsageData = await prisma.usage.findMany({
+        where: {
+          organization,
+          productArea,
+          createdAt: { 
+            gte: sixtyDaysAgo,
+            lt: thirtyDaysAgo 
+          },
+        },
+      });
+
+      const currentUsageAmount = currentUsageData.reduce((sum, usage) => {
+        return sum + (usage.currentUsage ? Number(usage.currentUsage) : 0);
+      }, 0);
+
+      const previousUsageAmount = previousUsageData.reduce((sum, usage) => {
+        return sum + (usage.currentUsage ? Number(usage.currentUsage) : 0);
+      }, 0);
       
       const usageDropPercentage = previousUsageAmount > 0 
         ? ((previousUsageAmount - currentUsageAmount) / previousUsageAmount) * 100
@@ -265,8 +290,21 @@ export class AnalyticsService {
           },
         });
 
-        // Get usage data for the month - skip for now until we know the correct model name
-        const usageData = null;
+        // Get usage data for the month
+        const usageData = await prisma.usage.findMany({
+          where: {
+            organization,
+            productArea,
+            createdAt: {
+              gte: monthStart,
+              lt: monthEnd,
+            },
+          },
+        });
+
+        const totalUsage = usageData.reduce((sum, usage) => {
+          return sum + (usage.currentUsage ? Number(usage.currentUsage) : 0);
+        }, 0);
 
         // Get debt score if available
         const debtAnalysis = await prisma.technicalDebtAnalysis.findFirst({
@@ -284,7 +322,7 @@ export class AnalyticsService {
         monthlyData.push({
           date: monthStart.toISOString().substring(0, 7), // YYYY-MM format
           ticketCount,
-          usageAmount: 0,
+          usageAmount: totalUsage,
           debtScore: debtAnalysis?.debtScore ? Number(debtAnalysis.debtScore) : undefined,
         });
       }
@@ -341,13 +379,33 @@ export class AnalyticsService {
    * Get all organizations
    */
   async getOrganizations(): Promise<string[]> {
-    const organizations = await prisma.supportTicket.findMany({
-      select: { organization: true },
-      distinct: ['organization'],
-      orderBy: { organization: 'asc' },
-    });
+    try {
+      // Get unique organizations from support tickets
+      const ticketOrgs = await prisma.supportTicket.findMany({
+        select: { organization: true },
+        distinct: ['organization'],
+        orderBy: { organization: 'asc' },
+      });
 
-    return organizations.map((org: { organization: string }) => org.organization);
+      // Get unique organizations from usage data
+      const usageOrgs = await prisma.usage.findMany({
+        select: { organization: true },
+        distinct: ['organization'],
+        orderBy: { organization: 'asc' },
+      });
+
+      // Combine and deduplicate organizations
+      const allOrgs = new Set([
+        ...ticketOrgs.map(t => t.organization),
+        ...usageOrgs.map(u => u.organization)
+      ]);
+
+      return Array.from(allOrgs).filter(Boolean);
+    } catch (error) {
+      console.error('Error getting organizations:', error);
+      // Return empty array if there's an error
+      return [];
+    }
   }
 
   /**
@@ -360,12 +418,15 @@ export class AnalyticsService {
       select: { createdAt: true },
     });
 
-    // Skip usage data for now until we know the correct model name
-    const lastUsage = null;
+    const lastUsage = await prisma.usage.findFirst({
+      where: { organization },
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
+    });
 
     return {
       tickets: lastTicket?.createdAt,
-      usage: undefined,
+      usage: lastUsage?.createdAt,
     };
   }
 
@@ -387,8 +448,12 @@ export class AnalyticsService {
       },
     });
 
-    // Skip usage deletion for now until we know the correct model name
-    const usageDeleted = { count: 0 };
+    const usageDeleted = await prisma.usage.deleteMany({
+      where: {
+        organization,
+        createdAt: { lt: cutoffDate },
+      },
+    });
 
     const analysisDeleted = await prisma.technicalDebtAnalysis.deleteMany({
       where: {
