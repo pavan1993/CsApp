@@ -91,8 +91,15 @@ const Sidebar: React.FC = () => {
               <button 
                 onClick={(e) => {
                   e.preventDefault();
+                  console.log('🔄 Upload Tickets button clicked');
+                  console.log('🔄 Current location:', window.location.pathname);
                   console.log('🔄 Navigating to /import for tickets');
-                  navigate('/import');
+                  try {
+                    navigate('/import');
+                    console.log('✅ Navigation to /import successful');
+                  } catch (error) {
+                    console.error('❌ Navigation failed:', error);
+                  }
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
@@ -102,8 +109,15 @@ const Sidebar: React.FC = () => {
               <button 
                 onClick={(e) => {
                   e.preventDefault();
+                  console.log('🔄 Upload Usage Data button clicked');
+                  console.log('🔄 Current location:', window.location.pathname);
                   console.log('🔄 Navigating to /import for usage');
-                  navigate('/import');
+                  try {
+                    navigate('/import');
+                    console.log('✅ Navigation to /import successful');
+                  } catch (error) {
+                    console.error('❌ Navigation failed:', error);
+                  }
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
@@ -113,8 +127,15 @@ const Sidebar: React.FC = () => {
               <button 
                 onClick={(e) => {
                   e.preventDefault();
+                  console.log('🔄 View Analytics button clicked');
+                  console.log('🔄 Current location:', window.location.pathname);
                   console.log('🔄 Navigating to /analytics');
-                  navigate('/analytics');
+                  try {
+                    navigate('/analytics');
+                    console.log('✅ Navigation to /analytics successful');
+                  } catch (error) {
+                    console.error('❌ Navigation failed:', error);
+                  }
                 }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
