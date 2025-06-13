@@ -89,21 +89,30 @@ const Sidebar: React.FC = () => {
           {state.selectedOrganization && (
             <div className="space-y-2">
               <button 
-                onClick={() => navigate('/import')}
+                onClick={() => {
+                  console.log('🔄 Navigating to /import');
+                  navigate('/import');
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Tickets
               </button>
               <button 
-                onClick={() => navigate('/import')}
+                onClick={() => {
+                  console.log('🔄 Navigating to /import');
+                  navigate('/import');
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
                 <Upload className="w-4 h-4 mr-2" />
                 Upload Usage Data
               </button>
               <button 
-                onClick={() => navigate('/analytics')}
+                onClick={() => {
+                  console.log('🔄 Navigating to /analytics');
+                  navigate('/analytics');
+                }}
                 className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center"
               >
                 <FileText className="w-4 h-4 mr-2" />
