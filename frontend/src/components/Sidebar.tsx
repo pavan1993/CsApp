@@ -96,8 +96,10 @@ const Sidebar: React.FC = () => {
           
           <div className="space-y-2">
             <button 
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 console.log('🔄 Upload Tickets button clicked');
                 console.log('🔄 Current location:', window.location.pathname);
                 console.log('🔄 Selected organization:', state.selectedOrganization);
@@ -109,14 +111,16 @@ const Sidebar: React.FC = () => {
                   console.error('❌ Navigation failed:', error);
                 }
               }}
-              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer"
+              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Tickets
             </button>
             <button 
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 console.log('🔄 Upload Usage Data button clicked');
                 console.log('🔄 Current location:', window.location.pathname);
                 console.log('🔄 Selected organization:', state.selectedOrganization);
@@ -128,14 +132,16 @@ const Sidebar: React.FC = () => {
                   console.error('❌ Navigation failed:', error);
                 }
               }}
-              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer"
+              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Usage Data
             </button>
             <button 
+              type="button"
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 console.log('🔄 View Analytics button clicked');
                 console.log('🔄 Current location:', window.location.pathname);
                 console.log('🔄 Selected organization:', state.selectedOrganization);
@@ -147,7 +153,7 @@ const Sidebar: React.FC = () => {
                   console.error('❌ Navigation failed:', error);
                 }
               }}
-              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer"
+              className="w-full text-left px-3 py-2 text-sm text-gray-600 hover:bg-gray-50 rounded-md transition-colors duration-200 flex items-center cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               View Analytics
