@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { BarChart3, Users, Home, Menu, X } from 'lucide-react'
+import { BarChart3, Users, Home, Upload, Menu, X } from 'lucide-react'
 import { useState } from 'react'
 import { useAppContext } from '../context/AppContext'
 import config from '../config/environment'
@@ -14,6 +14,7 @@ const AppHeader: React.FC = () => {
     { name: 'Dashboard', href: '/', icon: Home },
     { name: 'Customers', href: '/customers', icon: Users },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
+    { name: 'Import', href: '/import', icon: Upload },
   ]
 
   const toggleMobileMenu = () => {
