@@ -190,11 +190,14 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         invalidRows: result.data?.errors?.length || 0
       }
       
+      console.log('✅ Upload result data:', result.data);
+      console.log('✅ Validation result:', validationResult);
       console.log('✅ Calling onUploadComplete...');
       onUploadComplete?.({
         ...result,
         validation: validationResult,
-        data: result.data?.tickets || []
+        data: result.data?.tickets || [],
+        organizationsFound: result.data?.organizationsFound || []
       })
       
       // Reset after success

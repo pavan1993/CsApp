@@ -214,7 +214,7 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
             requester: row.Requester,
             productArea: row['Product Area'],
             reasonForContact: row['Reason for Contact'],
-            severity: mapSeverity(row.Severity || 'MODERATE'),
+            severity: mapSeverity(row['Severity level'] || row.Severity || 'MODERATE'),
           },
         });
         insertedTickets.push(ticket);
