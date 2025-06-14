@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Settings, MapPin, Sliders, Star, Zap, AlertCircle, CheckCircle } from 'lucide-react'
+import { Settings, MapPin, Sliders, Star, Zap, AlertCircle, CheckCircle, TrendingUp, Shield } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import { useSearchParams } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
@@ -7,12 +7,15 @@ import ProductAreaMapping from '../components/ProductAreaMapping'
 import ThresholdConfiguration from '../components/ThresholdConfiguration'
 import KeyModulesSelector from '../components/KeyModulesSelector'
 import ConfigurationWizard from '../components/ConfigurationWizard'
+import { apiService } from '../services/api'
 
 const Configuration: React.FC = () => {
   const { state } = useAppContext()
   const [searchParams, setSearchParams] = useSearchParams()
   const [activeTab, setActiveTab] = useState<'mapping' | 'thresholds' | 'modules' | 'wizard'>('mapping')
   const [showWizard, setShowWizard] = useState(false)
+  const [configStatus, setConfigStatus] = useState<any>(null)
+  const [loadingStatus, setLoadingStatus] = useState(false)
 
   // Set active tab based on URL parameter
   useEffect(() => {
@@ -21,6 +24,25 @@ const Configuration: React.FC = () => {
       setActiveTab(tabParam as any)
     }
   }, [searchParams])
+
+  // Load configuration status
+  useEffect(() => {
+    if (state.selectedOrganization) {
+      loadConfigurationStatus()
+    }
+  }, [state.selectedOrganization])
+
+  const loadConfigurationStatus = async () => {
+    try {
+      setLoadingStatus(true)
+      const status = await apiService.getConfigurationStatus(state.selectedOrganization!.name)
+      setConfigStatus(status)
+    } catch (err) {
+      console.error('Failed to load configuration status:', err)
+    } finally {
+      setLoadingStatus(false)
+    }
+  }
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab as any)

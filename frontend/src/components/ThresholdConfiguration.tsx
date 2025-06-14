@@ -40,6 +40,8 @@ const ThresholdConfiguration: React.FC<ThresholdConfigurationProps> = ({ organiz
   const [submitting, setSubmitting] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [previewScore, setPreviewScore] = useState<number | null>(null)
+  const [selectedThresholds, setSelectedThresholds] = useState<Set<string>>(new Set())
+  const [showBatchActions, setShowBatchActions] = useState(false)
 
   useEffect(() => {
     loadThresholds()
@@ -155,6 +157,42 @@ const ThresholdConfiguration: React.FC<ThresholdConfigurationProps> = ({ organiz
       ticketThreshold: 5,
       usageDropThreshold: 20
     })
+  }
+
+  const handleSelectThreshold = (id: string) => {
+    const newSelected = new Set(selectedThresholds)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedThresholds(newSelected)
+    setShowBatchActions(newSelected.size > 0)
+  }
+
+  const handleSelectAllThresholds = () => {
+    if (selectedThresholds.size === thresholds.length) {
+      setSelectedThresholds(new Set())
+      setShowBatchActions(false)
+    } else {
+      setSelectedThresholds(new Set(thresholds.map(t => t.id)))
+      setShowBatchActions(true)
+    }
+  }
+
+  const handleBatchDelete = async () => {
+    try {
+      setError(null)
+      const promises = Array.from(selectedThresholds).map(id => 
+        apiService.deleteThresholdConfiguration(organization, id)
+      )
+      await Promise.all(promises)
+      await loadThresholds()
+      setSelectedThresholds(new Set())
+      setShowBatchActions(false)
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete selected thresholds')
+    }
   }
 
   if (loading) {

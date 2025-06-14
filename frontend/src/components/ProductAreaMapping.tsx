@@ -107,19 +107,39 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
     setShowAddForm(false)
   }
 
-  const exportMappings = () => {
-    const csv = [
-      'Product Area,Dynatrace Capability,Key Module',
-      ...mappings.map(m => `"${m.productArea}","${m.dynatraceCapability}",${m.isKeyModule}`)
-    ].join('\n')
+  const exportMappings = async () => {
+    try {
+      const data = await apiService.exportConfiguration(organization, 'mappings')
+      const csv = [
+        'Product Area,Dynatrace Capability,Key Module',
+        ...mappings.map(m => `"${m.productArea}","${m.dynatraceCapability}",${m.isKeyModule}`)
+      ].join('\n')
 
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${organization}-product-area-mappings.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+      const blob = new Blob([csv], { type: 'text/csv' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${organization}-product-area-mappings-${new Date().toISOString().split('T')[0]}.csv`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (err: any) {
+      setError(err.message || 'Failed to export mappings')
+    }
+  }
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      setError(null)
+      await apiService.importConfiguration(organization, file, 'mappings')
+      await loadMappings()
+      // Reset the input
+      event.target.value = ''
+    } catch (err: any) {
+      setError(err.message || 'Failed to import mappings')
+    }
   }
 
   const filteredMappings = mappings.filter(mapping =>
@@ -165,6 +185,16 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
             <Download className="h-4 w-4 mr-2" />
             Export
           </button>
+          <label className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 cursor-pointer">
+            <Upload className="h-4 w-4 mr-2" />
+            Import
+            <input
+              type="file"
+              accept=".csv"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </label>
           <button
             onClick={() => setShowAddForm(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

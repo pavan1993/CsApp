@@ -299,6 +299,67 @@ class ApiService {
   async updateKeyModuleStatus(organization: string, id: string, isKeyModule: boolean) {
     return this.put(`/config/key-modules/${organization}/${id}`, { isKeyModule })
   }
+
+  // Batch operations for configuration
+  async batchUpdateProductAreaMappings(organization: string, mappings: Array<{
+    id?: string
+    productArea: string
+    dynatraceCapability: string
+    isKeyModule?: boolean
+  }>) {
+    return this.post(`/config/mapping/${organization}/batch`, { mappings })
+  }
+
+  async batchUpdateThresholdConfigurations(organization: string, thresholds: Array<{
+    id?: string
+    productArea: string
+    severityLevel: string
+    ticketThreshold: number
+    usageDropThreshold: number
+  }>) {
+    return this.post(`/config/thresholds/${organization}/batch`, { thresholds })
+  }
+
+  // Import/Export configuration
+  async exportConfiguration(organization: string, type: 'mappings' | 'thresholds' | 'all') {
+    return this.get(`/config/export/${organization}`, { type })
+  }
+
+  async importConfiguration(organization: string, file: File, type: 'mappings' | 'thresholds') {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('type', type)
+
+    try {
+      const response = await this.client.post(`/config/import/${organization}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      
+      if (response.data && typeof response.data === 'object' && 'success' in response.data) {
+        if (response.data.success) {
+          return response.data.data || response.data;
+        } else {
+          throw new Error(response.data.message || 'Import failed');
+        }
+      }
+      
+      return response.data;
+    } catch (error) {
+      console.error('❌ Configuration import failed:', error);
+      throw error;
+    }
+  }
+
+  // Validation methods
+  async validateConfiguration(organization: string) {
+    return this.get(`/config/validate/${organization}`)
+  }
+
+  async getConfigurationStatus(organization: string) {
+    return this.get(`/config/status/${organization}`)
+  }
 }
 
 // Export singleton instance
