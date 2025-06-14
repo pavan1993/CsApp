@@ -358,7 +358,18 @@ class ApiService {
   }
 
   async getConfigurationStatus(organization: string) {
-    return this.get(`/config/status/${organization}`)
+    try {
+      return await this.get(`/config/status/${organization}`)
+    } catch (error) {
+      // Return default status if endpoint doesn't exist yet
+      console.warn('Configuration status endpoint not available, using defaults')
+      return {
+        mappingsCount: 0,
+        thresholdsCount: 0,
+        keyModulesCount: 0,
+        isComplete: false
+      }
+    }
   }
 }
 
