@@ -106,8 +106,16 @@ const Import: React.FC = () => {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Data Import</h1>
         <p className="mt-1 text-sm text-gray-600">
-          Upload CSV files for {state.selectedOrganization?.name || 'selected organization'}
+          {activeTab === 'tickets' 
+            ? 'Upload support tickets CSV file (organizations will be extracted from the data)'
+            : `Upload usage data CSV file for ${state.selectedOrganization?.name || 'selected organization'}`
+          }
         </p>
+        {activeTab === 'tickets' && (
+          <div className="mt-2 text-xs text-gray-500">
+            Expected CSV columns: ID, Status, Requested, Organization, Subject, Updated, Assignee, Requester, Product Area, Reason for Contact, Severity
+          </div>
+        )}
       </div>
 
       {/* Status Banner */}
