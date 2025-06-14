@@ -1,0 +1,16 @@
+ID,Status,Requested,Organization,Subject,Updated,Assignee,Requester,Product Area,Reason for Contact,Severity level
+TKT-001,Open,06/01/2025 09:15,Acme Corp,Login issues with SSO authentication,06/14/2025 14:30,John Smith,sarah.jones@acmecorp.com,Authentication,Technical Issue,Critical
+TKT-002,In Progress,06/03/2025 11:22,TechStart Inc,API rate limiting errors,06/13/2025 16:45,Maria Garcia,dev.team@techstart.com,API,Bug Report,Severe
+TKT-003,Resolved,05/28/2025 14:08,Global Systems,User onboarding documentation request,06/10/2025 10:15,Alex Johnson,hr@globalsystems.net,Documentation,Feature Request,Low
+TKT-004,Open,06/12/2025 08:30,DataFlow Ltd,Dashboard performance degradation,06/14/2025 11:20,Emily Chen,admin@dataflow.com,Dashboard,Performance Issue,Severe
+TKT-005,Closed,06/02/2025 13:45,Innovation Hub,Billing discrepancy inquiry,06/08/2025 09:00,Michael Brown,finance@innovhub.org,Billing,Account Issue,Moderate
+TKT-006,In Progress,06/11/2025 16:20,CloudTech Solutions,Integration setup assistance,06/14/2025 13:10,Sarah Wilson,support@cloudtech.io,Integration,Implementation,Moderate
+TKT-007,Open,06/14/2025 07:45,StartupXYZ,Mobile app crashes on iOS,06/14/2025 07:45,David Lee,mobile@startupxyz.com,Mobile App,Bug Report,Critical
+TKT-008,Resolved,06/05/2025 12:30,Enterprise Corp,Security audit compliance questions,06/09/2025 15:22,Jennifer Taylor,security@entcorp.com,Security,Compliance,Moderate
+TKT-009,Open,06/13/2025 10:15,MegaCorp International,Data export functionality not working,06/14/2025 08:30,Robert Kim,operations@megacorp.com,Data Management,Technical Issue,Severe
+TKT-010,In Progress,06/08/2025 15:40,Local Business Co,Password reset not sending emails,06/12/2025 11:55,Lisa Anderson,admin@localbiz.com,User Management,Technical Issue,Moderate
+TKT-011,Closed,05/30/2025 09:20,Digital Agency,Custom branding options inquiry,06/04/2025 14:10,Tom Rodriguez,creative@digitalagency.net,Customization,Feature Request,Low
+TKT-012,Open,06/14/2025 12:00,HealthTech Systems,HIPAA compliance verification needed,06/14/2025 12:00,Amanda White,compliance@healthtech.com,Compliance,Information Request,Critical
+TKT-013,Resolved,06/06/2025 11:30,EduPlatform,Bulk user import failing,06/11/2025 16:20,Kevin Park,tech@eduplatform.edu,User Management,Technical Issue,Moderate
+TKT-014,Open,06/12/2025 14:25,RetailChain Plus,Inventory sync delays,06/14/2025 09:45,Michelle Green,it@retailchain.com,Integration,Performance Issue,Severe
+TKT-015,In Progress,06/10/2025 08:00,FinanceFirst,Report generation timeout errors,06/13/2025 13:30,Daniel Martinez,reports@financefirst.com,Reporting,Technical Issue,Moderate
