@@ -31,6 +31,39 @@ const Sidebar: React.FC = () => {
     setIsDropdownOpen(false)
   }
 
+  const navigationItems = [
+    {
+      name: 'Dashboard',
+      href: '/',
+      icon: Home,
+      description: 'Overview and analytics'
+    },
+    {
+      name: 'Customers',
+      href: '/customers',
+      icon: Users,
+      description: 'Manage organizations'
+    },
+    {
+      name: 'Analytics',
+      href: '/analytics',
+      icon: BarChart3,
+      description: 'Technical debt analysis'
+    },
+    {
+      name: 'Import Data',
+      href: '/import',
+      icon: Upload,
+      description: 'Upload tickets and usage data'
+    },
+    {
+      name: 'Configuration',
+      href: '/configuration',
+      icon: Settings,
+      description: 'Product area mapping and settings'
+    }
+  ]
+
   return (
     <aside className="w-64 bg-white shadow-sm border-r border-gray-200 h-full">
       <div className="p-4">
