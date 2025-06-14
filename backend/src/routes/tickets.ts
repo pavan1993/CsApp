@@ -121,12 +121,16 @@ function validateTicketRow(row: TicketCSVRow): string[] {
 router.post('/upload', upload.single('file'), handleMulterError, async (req: express.Request, res: express.Response) => {
   try {
     if (!req.file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ 
+        success: false,
+        error: 'No file uploaded' 
+      });
     }
 
     const results: TicketCSVRow[] = [];
     const errors: string[] = [];
     let rowNumber = 0;
+    const organizationsFound = new Set<string>();
 
     // Parse CSV from buffer
     const stream = Readable.from(req.file.buffer);
@@ -136,6 +140,11 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
         .pipe(csv())
         .on('data', (data: TicketCSVRow) => {
           rowNumber++;
+          
+          // Track organizations found in CSV
+          if (data.Organization && data.Organization.trim()) {
+            organizationsFound.add(data.Organization.trim());
+          }
           
           // Validate row
           const rowErrors = validateTicketRow(data);
@@ -151,6 +160,7 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
 
     if (errors.length > 0) {
       return res.status(400).json({
+        success: false,
         error: 'CSV validation failed',
         details: errors,
         validRows: results.length,
@@ -184,22 +194,31 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
 
     if (errors.length > 0) {
       return res.status(207).json({
+        success: true,
         message: 'Partial success',
-        inserted: insertedTickets.length,
-        errors: errors,
-        data: insertedTickets
+        data: {
+          inserted: insertedTickets.length,
+          errors: errors,
+          organizationsFound: Array.from(organizationsFound),
+          tickets: insertedTickets
+        }
       });
     }
 
     return res.status(201).json({
+      success: true,
       message: 'Tickets uploaded successfully',
-      inserted: insertedTickets.length,
-      data: insertedTickets
+      data: {
+        inserted: insertedTickets.length,
+        organizationsFound: Array.from(organizationsFound),
+        tickets: insertedTickets
+      }
     });
 
   } catch (error: any) {
     console.error('Ticket upload error:', error);
     return res.status(500).json({
+      success: false,
       error: 'Failed to process ticket upload',
       details: error.message
     });

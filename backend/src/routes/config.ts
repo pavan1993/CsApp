@@ -474,4 +474,32 @@ router.put('/key-modules/:organization/:id', async (req, res, next) => {
   }
 });
 
+// GET /api/config/status/:organization - Get configuration status
+router.get('/status/:organization', async (req, res, next) => {
+  try {
+    const { organization } = req.params;
+    validateOrganization(organization);
+
+    const [mappingsCount, thresholdsCount, keyModulesCount] = await Promise.all([
+      prisma.productAreaMapping.count({ where: { organization } }),
+      prisma.thresholdConfiguration.count({ where: { organization } }),
+      prisma.productAreaMapping.count({ where: { organization, isKeyModule: true } })
+    ]);
+
+    const isComplete = mappingsCount > 0 && thresholdsCount > 0;
+
+    res.json({
+      success: true,
+      data: {
+        mappingsCount,
+        thresholdsCount,
+        keyModulesCount,
+        isComplete
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export default router;

@@ -177,11 +177,10 @@ class ApiService {
     return this.get('/health')
   }
 
-  async uploadTickets(organization: string, file: File): Promise<{ message: string }> {
-    console.log('🔄 Uploading tickets file:', file.name, 'for organization:', organization);
+  async uploadTickets(file: File): Promise<{ message: string }> {
+    console.log('🔄 Uploading tickets file:', file.name);
     const formData = new FormData()
     formData.append('file', file)
-    formData.append('organization', organization)
 
     try {
       const response = await this.client.post('/tickets/upload', formData, {

@@ -122,11 +122,18 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
   const handleUpload = async () => {
     console.log('🔄 Upload button clicked');
     console.log('🔄 Selected file:', selectedFile?.name);
-    console.log('🔄 Selected organization:', state.selectedOrganization?.name);
     console.log('🔄 Upload type:', uploadType);
 
-    if (!selectedFile || !state.selectedOrganization) {
-      const errorMsg = 'Please select a file and organization';
+    if (!selectedFile) {
+      const errorMsg = 'Please select a file';
+      console.error('❌ Upload validation failed:', errorMsg);
+      onUploadError?.(errorMsg);
+      return;
+    }
+
+    // For usage uploads, still require organization
+    if (uploadType === 'usage' && !state.selectedOrganization) {
+      const errorMsg = 'Please select an organization for usage data upload';
       console.error('❌ Upload validation failed:', errorMsg);
       onUploadError?.(errorMsg);
       return;
@@ -134,32 +141,35 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
 
     console.log('✅ Starting upload process...');
     setUploadProgress({ progress: 0, status: 'uploading', message: 'Uploading file...' })
-    onUploadProgress?.(0, 'uploading')
+    
+    let progressInterval: NodeJS.Timeout | undefined;
 
     try {
       // Simulate upload progress
-      const progressInterval = setInterval(() => {
+      progressInterval = setInterval(() => {
         setUploadProgress(prev => {
           const newProgress = Math.min(prev.progress + 10, 90)
-          onUploadProgress?.(newProgress, 'uploading')
           return { ...prev, progress: newProgress }
         })
       }, 200)
 
       console.log('🔄 Calling upload method...');
-      const uploadMethod = uploadType === 'tickets' 
-        ? apiService.uploadTickets 
-        : apiService.uploadUsage
-
-      const result = await uploadMethod(state.selectedOrganization.name, selectedFile)
+      let result;
+      if (uploadType === 'tickets') {
+        result = await apiService.uploadTickets(selectedFile);
+      } else {
+        result = await apiService.uploadUsage(state.selectedOrganization!.name, selectedFile);
+      }
       console.log('✅ Upload method completed:', result);
       
-      clearInterval(progressInterval)
+      if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = undefined;
+      }
       
       // Validation phase
       console.log('🔄 Starting validation phase...');
       setUploadProgress({ progress: 95, status: 'validating', message: 'Validating data...' })
-      onUploadProgress?.(95, 'validating')
       
       // Simulate validation time
       await new Promise(resolve => setTimeout(resolve, 1000))
@@ -169,23 +179,22 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         status: 'complete', 
         message: 'Upload completed successfully!' 
       })
-      onUploadProgress?.(100, 'validating')
       
-      // Mock validation result for demo
-      const mockValidationResult = {
+      // Create validation result from actual response
+      const validationResult = {
         isValid: true,
-        errors: [],
+        errors: result.data?.errors || [],
         warnings: [],
-        rowCount: 150,
-        validRows: 148,
-        invalidRows: 2
+        rowCount: result.data?.inserted || 0,
+        validRows: result.data?.inserted || 0,
+        invalidRows: result.data?.errors?.length || 0
       }
       
       console.log('✅ Calling onUploadComplete...');
       onUploadComplete?.({
         ...result,
-        validation: mockValidationResult,
-        data: [] // This would contain sample data in a real implementation
+        validation: validationResult,
+        data: result.data?.tickets || []
       })
       
       // Reset after success
@@ -200,13 +209,14 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
 
     } catch (error: any) {
       console.error('❌ Upload failed with error:', error);
-      clearInterval(progressInterval);
+      if (progressInterval) {
+        clearInterval(progressInterval);
+      }
       setUploadProgress({ 
         progress: 0, 
         status: 'error', 
         message: error.message || 'Upload failed' 
       })
-      onUploadProgress?.(0, 'uploading')
       onUploadError?.(error.message || 'Upload failed')
     }
   }
@@ -309,7 +319,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         <div className="mt-4 flex justify-end">
           <button
             onClick={handleUpload}
-            disabled={!state.selectedOrganization}
+            disabled={uploadType === 'usage' && !state.selectedOrganization}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
           >
             Upload {uploadType === 'tickets' ? 'Tickets' : 'Usage Data'}

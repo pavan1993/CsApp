@@ -66,14 +66,14 @@ const Import: React.FC = () => {
   }
 
 
-  if (!state.selectedOrganization) {
+  if (!state.selectedOrganization && activeTab === 'usage') {
     return (
       <div className="px-4 py-6 sm:px-0">
         <div className="text-center py-12">
           <FileText className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">No organization selected</h3>
           <p className="mt-1 text-sm text-gray-500">
-            Please select an organization from the sidebar to import data.
+            Please select an organization from the sidebar to import usage data.
           </p>
           {state.organizations.length > 0 && (
             <p className="mt-2 text-xs text-gray-400">
