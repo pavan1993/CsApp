@@ -31,6 +31,8 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
   })
   const [submitting, setSubmitting] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+  const [selectedMappings, setSelectedMappings] = useState<Set<string>>(new Set())
+  const [showBatchActions, setShowBatchActions] = useState(false)
 
   useEffect(() => {
     loadMappings()
@@ -142,6 +144,57 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
     }
   }
 
+  const handleSelectMapping = (id: string) => {
+    const newSelected = new Set(selectedMappings)
+    if (newSelected.has(id)) {
+      newSelected.delete(id)
+    } else {
+      newSelected.add(id)
+    }
+    setSelectedMappings(newSelected)
+    setShowBatchActions(newSelected.size > 0)
+  }
+
+  const handleSelectAllMappings = () => {
+    if (selectedMappings.size === filteredMappings.length) {
+      setSelectedMappings(new Set())
+      setShowBatchActions(false)
+    } else {
+      setSelectedMappings(new Set(filteredMappings.map(m => m.id)))
+      setShowBatchActions(true)
+    }
+  }
+
+  const handleBatchDelete = async () => {
+    try {
+      setError(null)
+      const promises = Array.from(selectedMappings).map(id => 
+        apiService.deleteProductAreaMapping(organization, id)
+      )
+      await Promise.all(promises)
+      await loadMappings()
+      setSelectedMappings(new Set())
+      setShowBatchActions(false)
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete selected mappings')
+    }
+  }
+
+  const handleBatchToggleKeyModule = async (isKeyModule: boolean) => {
+    try {
+      setError(null)
+      const promises = Array.from(selectedMappings).map(id => 
+        apiService.updateProductAreaMapping(organization, id, { isKeyModule })
+      )
+      await Promise.all(promises)
+      await loadMappings()
+      setSelectedMappings(new Set())
+      setShowBatchActions(false)
+    } catch (err: any) {
+      setError(err.message || 'Failed to update selected mappings')
+    }
+  }
+
   const filteredMappings = mappings.filter(mapping =>
     mapping.productArea.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mapping.dynatraceCapability.toLowerCase().includes(searchTerm.toLowerCase())
@@ -177,6 +230,29 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
           )}
         </div>
         <div className="flex items-center space-x-2">
+          {showBatchActions && (
+            <div className="flex items-center space-x-2 mr-4 px-3 py-1 bg-blue-50 rounded-md">
+              <span className="text-sm text-blue-700">{selectedMappings.size} selected</span>
+              <button
+                onClick={() => handleBatchToggleKeyModule(true)}
+                className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded hover:bg-yellow-200"
+              >
+                Mark as Key
+              </button>
+              <button
+                onClick={() => handleBatchToggleKeyModule(false)}
+                className="text-xs px-2 py-1 bg-gray-100 text-gray-800 rounded hover:bg-gray-200"
+              >
+                Remove Key
+              </button>
+              <button
+                onClick={handleBatchDelete}
+                className="text-xs px-2 py-1 bg-red-100 text-red-800 rounded hover:bg-red-200"
+              >
+                Delete
+              </button>
+            </div>
+          )}
           <button
             onClick={exportMappings}
             disabled={mappings.length === 0}
@@ -296,9 +372,19 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
       {/* Mappings Table */}
       <div className="bg-white shadow rounded-lg overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-medium text-gray-900">
-            Product Area Mappings ({filteredMappings.length})
-          </h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">
+              Product Area Mappings ({filteredMappings.length})
+            </h3>
+            {filteredMappings.length > 0 && (
+              <button
+                onClick={handleSelectAllMappings}
+                className="text-sm text-blue-600 hover:text-blue-500"
+              >
+                {selectedMappings.size === filteredMappings.length ? 'Deselect All' : 'Select All'}
+              </button>
+            )}
+          </div>
         </div>
         {filteredMappings.length === 0 ? (
           <div className="text-center py-12">
@@ -319,6 +405,14 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={selectedMappings.size === filteredMappings.length && filteredMappings.length > 0}
+                      onChange={handleSelectAllMappings}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product Area
                   </th>

@@ -128,6 +128,58 @@ const Configuration: React.FC = () => {
         </button>
       </div>
 
+      {/* Configuration Status Cards */}
+      {configStatus && !loadingStatus && (
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <div className="flex items-center">
+              <MapPin className="h-8 w-8 text-blue-500" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Mappings</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {configStatus.mappingsCount || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <div className="flex items-center">
+              <Sliders className="h-8 w-8 text-green-500" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Thresholds</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {configStatus.thresholdsCount || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <div className="flex items-center">
+              <Star className="h-8 w-8 text-yellow-500" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Key Modules</p>
+                <p className="text-lg font-semibold text-gray-900">
+                  {configStatus.keyModulesCount || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white p-4 rounded-lg shadow border border-gray-200">
+            <div className="flex items-center">
+              <Shield className="h-8 w-8 text-purple-500" />
+              <div className="ml-3">
+                <p className="text-sm font-medium text-gray-500">Status</p>
+                <p className={`text-lg font-semibold ${
+                  configStatus.isComplete ? 'text-green-600' : 'text-orange-600'
+                }`}>
+                  {configStatus.isComplete ? 'Complete' : 'Incomplete'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
