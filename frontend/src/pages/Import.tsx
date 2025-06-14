@@ -243,10 +243,12 @@ const Import: React.FC = () => {
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-medium text-gray-900 mb-4">Quick Stats</h2>
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Organization:</span>
-                <span className="font-medium">{state.selectedOrganization.name}</span>
-              </div>
+              {activeTab === 'usage' && state.selectedOrganization && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Organization:</span>
+                  <span className="font-medium">{state.selectedOrganization.name}</span>
+                </div>
+              )}
               <div className="flex justify-between text-sm">
                 <span className="text-gray-500">Upload Type:</span>
                 <span className="font-medium capitalize">{activeTab}</span>

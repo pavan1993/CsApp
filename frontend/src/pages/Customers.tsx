@@ -28,27 +28,24 @@ const Customers: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  // Mock customers data - in real app this would come from API
-  const [customers, setCustomers] = useState<Customer[]>([
-    {
-      id: '1',
-      name: 'Acme Corporation',
-      email: 'admin@acme.com',
-      company: 'Acme Corporation',
-      status: 'ACTIVE',
-      createdAt: '2024-01-15T10:00:00Z',
-      lastActivity: '2024-06-10T14:30:00Z'
-    },
-    {
-      id: '2', 
-      name: 'TechStart Inc',
-      email: 'contact@techstart.com',
-      company: 'TechStart Inc',
-      status: 'TRIAL',
-      createdAt: '2024-03-20T09:15:00Z',
-      lastActivity: '2024-06-12T11:45:00Z'
+  // Convert organizations from context to customer format
+  const [customers, setCustomers] = useState<Customer[]>([])
+
+  // Initialize customers from organizations in context
+  React.useEffect(() => {
+    if (state.organizations.length > 0) {
+      const customerData = state.organizations.map((org, index) => ({
+        id: org.id,
+        name: org.name,
+        email: `admin@${org.name.toLowerCase().replace(/\s+/g, '')}.com`,
+        company: org.name,
+        status: 'ACTIVE' as const,
+        createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(), // Stagger dates
+        lastActivity: new Date(Date.now() - (Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString() // Random recent activity
+      }))
+      setCustomers(customerData)
     }
-  ])
+  }, [state.organizations])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
