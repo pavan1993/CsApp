@@ -182,23 +182,23 @@ const Configuration: React.FC = () => {
 
       {/* Tab Navigation */}
       <div className="border-b border-gray-200 mb-6">
-        <nav className="-mb-px flex space-x-8">
+        <nav className="-mb-px flex space-x-8 overflow-x-auto">
           {tabs.map((tab) => {
             const Icon = tab.icon
             return (
               <button
                 key={tab.id}
                 onClick={() => handleTabChange(tab.id)}
-                className={`group py-4 px-1 border-b-2 font-medium text-sm ${
+                className={`group py-4 px-4 border-b-2 font-medium text-sm whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    ? 'border-blue-500 text-blue-600 bg-blue-50'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                 }`}
               >
                 <div className="flex items-center">
-                  <Icon className="w-4 h-4 mr-2" />
+                  <Icon className="w-5 h-5 mr-2" />
                   <div className="text-left">
-                    <div>{tab.name}</div>
+                    <div className="font-semibold">{tab.name}</div>
                     <div className="text-xs text-gray-400 font-normal">
                       {tab.description}
                     </div>
@@ -212,15 +212,28 @@ const Configuration: React.FC = () => {
 
       {/* Tab Content */}
       <div className="space-y-6">
-        {activeTab === 'mapping' && (
-          <ProductAreaMapping organization={state.selectedOrganization.name} />
-        )}
-        {activeTab === 'thresholds' && (
-          <ThresholdConfiguration organization={state.selectedOrganization.name} />
-        )}
-        {activeTab === 'modules' && (
-          <KeyModulesSelector organization={state.selectedOrganization.name} />
-        )}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-1">
+          <div className="bg-gray-50 rounded-md p-4 mb-4">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">
+              {tabs.find(t => t.id === activeTab)?.name}
+            </h2>
+            <p className="text-sm text-gray-600">
+              {tabs.find(t => t.id === activeTab)?.description}
+            </p>
+          </div>
+          
+          <div className="p-4">
+            {activeTab === 'mapping' && (
+              <ProductAreaMapping organization={state.selectedOrganization.name} />
+            )}
+            {activeTab === 'thresholds' && (
+              <ThresholdConfiguration organization={state.selectedOrganization.name} />
+            )}
+            {activeTab === 'modules' && (
+              <KeyModulesSelector organization={state.selectedOrganization.name} />
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Configuration Wizard Modal */}
