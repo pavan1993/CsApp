@@ -429,7 +429,15 @@ const ProductAreaMapping: React.FC<ProductAreaMappingProps> = ({ organization })
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredMappings.map((mapping) => (
-                  <tr key={mapping.id} className="hover:bg-gray-50">
+                  <tr key={mapping.id} className={`hover:bg-gray-50 ${selectedMappings.has(mapping.id) ? 'bg-blue-50' : ''}`}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <input
+                        type="checkbox"
+                        checked={selectedMappings.has(mapping.id)}
+                        onChange={() => handleSelectMapping(mapping.id)}
+                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="text-sm font-medium text-gray-900">
