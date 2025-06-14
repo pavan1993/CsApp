@@ -297,7 +297,7 @@ class ApiService {
   }
 
   async updateKeyModuleStatus(organization: string, id: string, isKeyModule: boolean) {
-    return this.put(`/config/key-modules/${organization}/${id}`, { isKeyModule })
+    return this.put(`/config/mapping/${organization}/${id}`, { isKeyModule })
   }
 
   // Batch operations for configuration
