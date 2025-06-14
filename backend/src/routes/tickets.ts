@@ -127,9 +127,21 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
       });
     }
 
+    console.log('📁 File received:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size,
+      bufferLength: req.file.buffer.length
+    });
+
+    // Log first few bytes of the file to check encoding
+    const firstBytes = req.file.buffer.slice(0, 200).toString('utf8');
+    console.log('📄 First 200 bytes of file:', firstBytes);
+
     const results: TicketCSVRow[] = [];
     const errors: string[] = [];
     let rowNumber = 0;
+    let headerRow: string[] = [];
     const organizationsFound = new Set<string>();
 
     // Parse CSV from buffer
@@ -138,8 +150,13 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
     await new Promise<void>((resolve, reject) => {
       stream
         .pipe(csv())
+        .on('headers', (headers: string[]) => {
+          headerRow = headers;
+          console.log('📋 CSV Headers detected:', headers);
+        })
         .on('data', (data: TicketCSVRow) => {
           rowNumber++;
+          console.log(`📊 Row ${rowNumber} data:`, data);
           
           // Track organizations found in CSV
           if (data.Organization && data.Organization.trim()) {
@@ -150,12 +167,25 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
           const rowErrors = validateTicketRow(data);
           if (rowErrors.length > 0) {
             errors.push(`Row ${rowNumber}: ${rowErrors.join(', ')}`);
+            console.log(`❌ Row ${rowNumber} validation errors:`, rowErrors);
           } else {
             results.push(data);
+            console.log(`✅ Row ${rowNumber} validated successfully`);
           }
         })
-        .on('end', resolve)
-        .on('error', reject);
+        .on('end', () => {
+          console.log('📄 CSV parsing completed:', {
+            totalRows: rowNumber,
+            validRows: results.length,
+            errorRows: errors.length,
+            organizationsFound: Array.from(organizationsFound)
+          });
+          resolve();
+        })
+        .on('error', (error) => {
+          console.error('❌ CSV parsing error:', error);
+          reject(error);
+        });
     });
 
     if (errors.length > 0) {
