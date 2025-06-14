@@ -370,6 +370,48 @@ class ApiService {
       }
     }
   }
+
+  // Analytics API methods
+  async getTicketBreakdown(organization: string, dateRange?: string) {
+    return this.get(`/analytics/tickets/breakdown`, { organization, dateRange })
+  }
+
+  async getUsageCorrelation(organization: string) {
+    return this.get(`/analytics/usage/correlation`, { organization })
+  }
+
+  async getTechnicalDebtAnalysis(organization: string, analysisDate?: string) {
+    return this.get(`/analytics/technical-debt`, { organization, analysisDate })
+  }
+
+  async getTrendAnalysis(organization: string, productArea?: string, dateRange?: string) {
+    return this.get(`/analytics/trends`, { organization, productArea, dateRange })
+  }
+
+  async getExecutiveSummary(organization: string) {
+    return this.get(`/analytics/executive-summary`, { organization })
+  }
+
+  // Additional analytics endpoints
+  async getTicketsByProductArea(organization: string, productArea: string, dateRange?: string) {
+    return this.get(`/analytics/tickets/product-area/${productArea}`, { organization, dateRange })
+  }
+
+  async getUsageMetrics(organization: string, capability?: string, dateRange?: string) {
+    return this.get(`/analytics/usage/metrics`, { organization, capability, dateRange })
+  }
+
+  async getCorrelationMatrix(organization: string) {
+    return this.get(`/analytics/correlation-matrix`, { organization })
+  }
+
+  async getDebtScoreHistory(organization: string, productArea?: string, dateRange?: string) {
+    return this.get(`/analytics/debt-score/history`, { organization, productArea, dateRange })
+  }
+
+  async getRecommendations(organization: string, priority?: string) {
+    return this.get(`/analytics/recommendations`, { organization, priority })
+  }
 }
 
 // Export singleton instance
