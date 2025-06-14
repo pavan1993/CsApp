@@ -402,6 +402,14 @@ const ThresholdConfiguration: React.FC<ThresholdConfigurationProps> = ({ organiz
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <input
+                      type="checkbox"
+                      checked={selectedThresholds.size === thresholds.length && thresholds.length > 0}
+                      onChange={handleSelectAllThresholds}
+                      className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    />
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Product Area
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -422,7 +430,15 @@ const ThresholdConfiguration: React.FC<ThresholdConfigurationProps> = ({ organiz
                 {thresholds.map((threshold) => {
                   const severityConfig = SEVERITY_LEVELS.find(s => s.value === threshold.severityLevel)
                   return (
-                    <tr key={threshold.id} className="hover:bg-gray-50">
+                    <tr key={threshold.id} className={`hover:bg-gray-50 ${selectedThresholds.has(threshold.id) ? 'bg-blue-50' : ''}`}>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedThresholds.has(threshold.id)}
+                          onChange={() => handleSelectThreshold(threshold.id)}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
                           {threshold.productArea}
