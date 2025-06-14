@@ -41,7 +41,8 @@ interface TicketCSVRow {
   Requester: string;
   'Product Area': string;
   'Reason for Contact': string;
-  Severity?: string;
+  'Severity level'?: string;
+  Severity?: string; // Keep both for backward compatibility
 }
 
 // Helper function to parse date in MM/DD/YYYY HH:MM format
