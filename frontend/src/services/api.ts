@@ -240,6 +240,65 @@ class ApiService {
   async getAnalytics(organization: string, type: string, params?: any) {
     return this.get(`/analytics/${type}`, { organization, ...params })
   }
+
+  // Configuration API methods
+  async getProductAreaMappings(organization: string) {
+    return this.get(`/config/mapping/${organization}`)
+  }
+
+  async createProductAreaMapping(organization: string, data: {
+    productArea: string
+    dynatraceCapability: string
+    isKeyModule?: boolean
+  }) {
+    return this.post(`/config/mapping/${organization}`, data)
+  }
+
+  async updateProductAreaMapping(organization: string, id: string, data: {
+    productArea?: string
+    dynatraceCapability?: string
+    isKeyModule?: boolean
+  }) {
+    return this.put(`/config/mapping/${organization}/${id}`, data)
+  }
+
+  async deleteProductAreaMapping(organization: string, id: string) {
+    return this.delete(`/config/mapping/${organization}/${id}`)
+  }
+
+  async getThresholdConfigurations(organization: string) {
+    return this.get(`/config/thresholds/${organization}`)
+  }
+
+  async createThresholdConfiguration(organization: string, data: {
+    productArea: string
+    severityLevel: string
+    ticketThreshold: number
+    usageDropThreshold: number
+  }) {
+    return this.post(`/config/thresholds/${organization}`, data)
+  }
+
+  async updateThresholdConfiguration(organization: string, id: string, data: {
+    productArea?: string
+    severityLevel?: string
+    ticketThreshold?: number
+    usageDropThreshold?: number
+  }) {
+    return this.put(`/config/thresholds/${organization}/${id}`, data)
+  }
+
+  async deleteThresholdConfiguration(organization: string, id: string) {
+    return this.delete(`/config/thresholds/${organization}/${id}`)
+  }
+
+  async getKeyModules(organization: string) {
+    return this.get(`/config/key-modules/${organization}`)
+  }
+
+  async updateKeyModuleStatus(organization: string, id: string, isKeyModule: boolean) {
+    return this.put(`/config/key-modules/${organization}/${id}`, { isKeyModule })
+  }
 }
 
 // Export singleton instance
