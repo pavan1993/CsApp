@@ -167,8 +167,8 @@ export class AnalyticsService {
         orderBy: { uploadDate: 'desc' },
       });
 
-      const currentUsageAmount = currentUsage?.last30DaysCost || 0;
-      const previousUsageAmount = previousUsage?.last30DaysCost || currentUsageAmount;
+      const currentUsageAmount = currentUsage?.last30DaysCost ? Number(currentUsage.last30DaysCost) : 0;
+      const previousUsageAmount = previousUsage?.last30DaysCost ? Number(previousUsage.last30DaysCost) : currentUsageAmount;
       
       const usageDropPercentage = previousUsageAmount > 0 
         ? ((previousUsageAmount - currentUsageAmount) / previousUsageAmount) * 100
