@@ -32,10 +32,20 @@
     "clean": "rm -rf backend/dist frontend/dist backend/node_modules frontend/node_modules node_modules",
     "postinstall": "npm run install:all"
   },
-  "keywords": ["customer-success", "analytics", "react", "nodejs", "postgresql"],
+  "keywords": [
+    "customer-success",
+    "analytics",
+    "react",
+    "nodejs",
+    "postgresql"
+  ],
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@types/recharts": "^1.8.29",
     "concurrently": "^7.6.0"
+  },
+  "dependencies": {
+    "recharts": "^2.15.3"
   }
 }
