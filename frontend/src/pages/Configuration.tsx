@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { Settings, MapPin, Sliders, Star, Zap, AlertCircle, CheckCircle, TrendingUp, Shield } from 'lucide-react'
+import { Settings, MapPin, Sliders, Star, Zap, AlertCircle, CheckCircle, TrendingUp, Shield, ArrowRight, ArrowLeft } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import { useSearchParams } from 'react-router-dom'
+import { useWorkflow } from '../hooks/useWorkflow'
+import { useNotifications } from '../hooks/useNotifications'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ProductAreaMapping from '../components/ProductAreaMapping'
 import ThresholdConfiguration from '../components/ThresholdConfiguration'
@@ -10,8 +12,10 @@ import ConfigurationWizard from '../components/ConfigurationWizard'
 import { apiService } from '../services/api'
 
 const Configuration: React.FC = () => {
-  const { state } = useAppContext()
+  const { state, dispatch } = useAppContext()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { updateStepData, nextStep, previousStep, isStepComplete } = useWorkflow()
+  const notifications = useNotifications()
   const [activeTab, setActiveTab] = useState<'mapping' | 'thresholds' | 'modules' | 'wizard'>('mapping')
   const [showWizard, setShowWizard] = useState(false)
   const [configStatus, setConfigStatus] = useState<any>(null)
@@ -37,8 +41,32 @@ const Configuration: React.FC = () => {
       setLoadingStatus(true)
       const status = await apiService.getConfigurationStatus(state.selectedOrganization!.name)
       setConfigStatus(status)
+      
+      // Update workflow state
+      updateStepData('configuration', {
+        mappingsConfigured: status.mappingsCount > 0,
+        thresholdsConfigured: status.thresholdsCount > 0,
+        keyModulesConfigured: status.keyModulesCount > 0,
+        configurationComplete: status.isComplete
+      })
+      
+      // Update app state
+      dispatch({
+        type: 'SET_CONFIGURATION_STATUS',
+        payload: {
+          mappingsConfigured: status.mappingsCount > 0,
+          thresholdsConfigured: status.thresholdsCount > 0,
+          keyModulesConfigured: status.keyModulesCount > 0,
+          mappingsCount: status.mappingsCount,
+          thresholdsCount: status.thresholdsCount,
+          keyModulesCount: status.keyModulesCount,
+          isComplete: status.isComplete
+        }
+      })
+      
     } catch (err) {
       console.error('Failed to load configuration status:', err)
+      notifications.error('Configuration Error', 'Failed to load configuration status')
     } finally {
       setLoadingStatus(false)
     }
@@ -243,11 +271,51 @@ const Configuration: React.FC = () => {
           onClose={() => setShowWizard(false)}
           onComplete={() => {
             setShowWizard(false)
-            // Refresh the current tab
-            window.location.reload()
+            loadConfigurationStatus()
+            notifications.success(
+              'Configuration Complete',
+              'Your configuration has been saved successfully.',
+              {
+                action: {
+                  label: 'Next Step',
+                  onClick: () => {
+                    if (isStepComplete('configuration')) {
+                      nextStep()
+                    }
+                  }
+                }
+              }
+            )
           }}
         />
       )}
+
+      {/* Workflow Navigation */}
+      <div className="mt-8 flex justify-between items-center p-4 bg-white rounded-lg shadow">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={previousStep}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back: Data Import
+          </button>
+          <div className="text-sm text-gray-600">
+            Step 2 of 3: Configuration
+          </div>
+        </div>
+        <div className="flex space-x-3">
+          {isStepComplete('configuration') && (
+            <button
+              onClick={nextStep}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Next: Analytics
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

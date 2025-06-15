@@ -16,6 +16,7 @@ export interface ApiError {
 
 class ApiService {
   private client: AxiosInstance
+  private cache: Map<string, { data: any; timestamp: number; ttl: number }> = new Map()
 
   constructor() {
     this.client = axios.create({
@@ -27,6 +28,52 @@ class ApiService {
     })
 
     this.setupInterceptors()
+    this.setupCacheCleanup()
+  }
+
+  private setupCacheCleanup() {
+    // Clean expired cache entries every 5 minutes
+    setInterval(() => {
+      const now = Date.now()
+      for (const [key, entry] of this.cache.entries()) {
+        if (now - entry.timestamp > entry.ttl) {
+          this.cache.delete(key)
+        }
+      }
+    }, 5 * 60 * 1000)
+  }
+
+  private getCacheKey(url: string, params?: any): string {
+    return `${url}${params ? `?${JSON.stringify(params)}` : ''}`
+  }
+
+  private getFromCache(key: string): any | null {
+    const entry = this.cache.get(key)
+    if (entry && Date.now() - entry.timestamp < entry.ttl) {
+      return entry.data
+    }
+    this.cache.delete(key)
+    return null
+  }
+
+  private setCache(key: string, data: any, ttl: number = 300000): void {
+    this.cache.set(key, {
+      data,
+      timestamp: Date.now(),
+      ttl
+    })
+  }
+
+  public clearCache(pattern?: string): void {
+    if (pattern) {
+      for (const key of this.cache.keys()) {
+        if (key.includes(pattern)) {
+          this.cache.delete(key)
+        }
+      }
+    } else {
+      this.cache.clear()
+    }
   }
 
   private setupInterceptors() {
@@ -98,54 +145,114 @@ class ApiService {
     )
   }
 
-  // Generic methods
-  async get<T>(url: string, params?: any): Promise<T> {
+  // Generic methods with caching
+  async get<T>(url: string, params?: any, options?: { cache?: boolean; ttl?: number }): Promise<T> {
+    const cacheKey = this.getCacheKey(url, params)
+    const useCache = options?.cache !== false
+    
+    // Check cache first
+    if (useCache) {
+      const cachedData = this.getFromCache(cacheKey)
+      if (cachedData) {
+        console.log(`✅ Cache hit for: ${url}`)
+        return cachedData
+      }
+    }
+
     console.log(`🔄 Making GET request to: ${config.apiUrl}${url}`, params ? `with params: ${JSON.stringify(params)}` : '');
     try {
       const response = await this.client.get<any>(url, { params })
       console.log('✅ Raw API Response:', response.data)
       
+      let result: T
+      
       // Handle the backend response format: { success: true, data: T }
       if (response.data && typeof response.data === 'object' && 'success' in response.data) {
         if (response.data.success && 'data' in response.data) {
           console.log('✅ Extracted data:', response.data.data)
-          return response.data.data as T
+          result = response.data.data as T
         } else {
           const errorMessage = response.data.message || 'API request failed';
           console.error('❌ API request failed:', errorMessage);
           throw new Error(errorMessage);
         }
+      } else {
+        // Fallback for other response formats
+        console.log('⚠️ Using fallback response format');
+        result = response.data as T
       }
-      
-      // Fallback for other response formats
-      console.log('⚠️ Using fallback response format');
-      return response.data as T
+
+      // Cache the result
+      if (useCache) {
+        this.setCache(cacheKey, result, options?.ttl)
+      }
+
+      return result
     } catch (error) {
       console.error(`❌ GET request failed for ${url}:`, error);
       throw error;
     }
   }
 
-  async post<T>(url: string, data?: any): Promise<T> {
+  async post<T>(url: string, data?: any, options?: { optimistic?: boolean }): Promise<T> {
+    // Clear related cache entries
+    this.clearCache(url.split('/')[1])
+    
     const response = await this.client.post<ApiResponse<T>>(url, data)
     return response.data.data
   }
 
-  async put<T>(url: string, data?: any): Promise<T> {
+  async put<T>(url: string, data?: any, options?: { optimistic?: boolean }): Promise<T> {
+    // Clear related cache entries
+    this.clearCache(url.split('/')[1])
+    
     const response = await this.client.put<ApiResponse<T>>(url, data)
     return response.data.data
   }
 
-  async delete<T>(url: string): Promise<T> {
+  async delete<T>(url: string, options?: { optimistic?: boolean }): Promise<T> {
+    // Clear related cache entries
+    this.clearCache(url.split('/')[1])
+    
     const response = await this.client.delete<ApiResponse<T>>(url)
     return response.data.data
+  }
+
+  // Optimistic update helper
+  async optimisticUpdate<T>(
+    cacheKey: string,
+    updateFn: (current: T) => T,
+    apiCall: () => Promise<T>
+  ): Promise<T> {
+    const currentData = this.getFromCache(cacheKey)
+    
+    if (currentData) {
+      // Apply optimistic update
+      const optimisticData = updateFn(currentData)
+      this.setCache(cacheKey, optimisticData, 60000) // Short TTL for optimistic data
+      
+      try {
+        // Make actual API call
+        const result = await apiCall()
+        // Update cache with real data
+        this.setCache(cacheKey, result)
+        return result
+      } catch (error) {
+        // Revert optimistic update on error
+        this.setCache(cacheKey, currentData)
+        throw error
+      }
+    } else {
+      // No cached data, just make the API call
+      return await apiCall()
+    }
   }
 
   // Specific API methods
   async getOrganizations(): Promise<string[]> {
     console.log('🔄 Fetching organizations from:', `${config.apiUrl}/analytics/organizations`);
     try {
-      const result = await this.get<string[]>('/analytics/organizations');
+      const result = await this.get<string[]>('/analytics/organizations', undefined, { cache: true, ttl: 600000 }); // Cache for 10 minutes
       console.log('✅ Organizations fetched successfully:', result);
       
       // Ensure we return an array of strings
@@ -256,7 +363,7 @@ class ApiService {
   }
 
   async getAnalytics(organization: string, type: string, params?: any) {
-    return this.get(`/analytics/${type}`, { organization, ...params })
+    return this.get(`/analytics/${type}`, { organization, ...params }, { cache: true, ttl: 180000 }) // Cache for 3 minutes
   }
 
   // Configuration API methods

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { FileText, BarChart3, AlertCircle, CheckCircle, Clock } from 'lucide-react'
+import { FileText, BarChart3, AlertCircle, CheckCircle, Clock, ArrowRight } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import { useSearchParams } from 'react-router-dom'
+import { useWorkflow } from '../hooks/useWorkflow'
+import { useNotifications } from '../hooks/useNotifications'
 import LoadingSpinner from '../components/LoadingSpinner'
 import CSVUploader from '../components/CSVUploader'
 import UploadHistory from '../components/UploadHistory'
@@ -9,8 +11,10 @@ import ImportStatus from '../components/ImportStatus'
 import DataPreview from '../components/DataPreview'
 
 const Import: React.FC = () => {
-  const { state } = useAppContext()
+  const { state, dispatch } = useAppContext()
   const [searchParams] = useSearchParams()
+  const { updateStepData, nextStep, isStepComplete } = useWorkflow()
+  const notifications = useNotifications()
   const [activeTab, setActiveTab] = useState<'tickets' | 'usage'>('tickets')
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'validating' | 'complete' | 'error'>('idle')
@@ -35,12 +39,62 @@ const Import: React.FC = () => {
     setValidationResult(result.validation)
     setUploadedData(result.data)
     setRefreshTrigger(prev => prev + 1)
+
+    // Update workflow state
+    const stepData = {
+      [`${activeTab}Uploaded`]: true,
+      [`${activeTab}UploadDate`]: new Date().toISOString(),
+      [`${activeTab}RecordCount`]: result.validation?.validRows || result.data?.length || 0
+    }
+    
+    updateStepData('import', stepData)
+    
+    // Update app state
+    dispatch({
+      type: 'SET_DATA_STATUS',
+      payload: {
+        [activeTab === 'tickets' ? 'ticketsUploaded' : 'usageUploaded']: true,
+        [activeTab === 'tickets' ? 'lastTicketUpload' : 'lastUsageUpload']: new Date().toISOString(),
+        [activeTab === 'tickets' ? 'ticketCount' : 'usageRecordCount']: result.validation?.validRows || result.data?.length || 0
+      }
+    })
+
+    // Show success notification
+    notifications.success(
+      'Upload Successful',
+      `${activeTab === 'tickets' ? 'Support tickets' : 'Usage data'} uploaded successfully. ${result.validation?.validRows || result.data?.length || 0} records processed.`,
+      {
+        action: {
+          label: 'Next Step',
+          onClick: () => {
+            if (isStepComplete('import')) {
+              nextStep()
+            }
+          }
+        }
+      }
+    )
+
+    // Trigger refresh of analytics data
+    dispatch({ type: 'TRIGGER_REFRESH' })
   }
 
   const handleUploadError = (error: string) => {
     console.error('Upload error:', error)
     setUploadStatus('error')
     setUploadMessage(error)
+    
+    // Show error notification
+    notifications.error(
+      'Upload Failed',
+      error,
+      {
+        action: {
+          label: 'Retry',
+          onClick: handleRetry
+        }
+      }
+    )
   }
 
   const handleUploadProgress = (progress: number, status: 'uploading' | 'validating') => {
@@ -284,6 +338,24 @@ const Import: React.FC = () => {
           onClose={() => setShowDataPreview(false)}
         />
       )}
+
+      {/* Workflow Navigation */}
+      <div className="mt-8 flex justify-between items-center p-4 bg-white rounded-lg shadow">
+        <div className="text-sm text-gray-600">
+          Step 1 of 3: Data Import
+        </div>
+        <div className="flex space-x-3">
+          {isStepComplete('import') && (
+            <button
+              onClick={nextStep}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              Next: Configuration
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

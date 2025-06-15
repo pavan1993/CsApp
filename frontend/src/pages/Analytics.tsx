@@ -1,16 +1,23 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAppContext } from '../context/AppContext'
+import { useWorkflow } from '../hooks/useWorkflow'
+import { useNotifications } from '../hooks/useNotifications'
 import LoadingSpinner from '../components/LoadingSpinner'
 import ExecutiveSummary from '../components/analytics/ExecutiveSummary'
 import TicketBreakdown from '../components/analytics/TicketBreakdown'
 import UsageCorrelation from '../components/analytics/UsageCorrelation'
 import TechnicalDebtDashboard from '../components/analytics/TechnicalDebtDashboard'
 import TrendAnalysis from '../components/analytics/TrendAnalysis'
-import { BarChart3, TrendingUp, Activity, AlertTriangle, FileText } from 'lucide-react'
+import { exportService } from '../services/exportService'
+import { BarChart3, TrendingUp, Activity, AlertTriangle, FileText, Download, Share2, ArrowLeft, CheckCircle } from 'lucide-react'
 
 const Analytics: React.FC = () => {
   const { state } = useAppContext()
+  const { updateStepData, previousStep, markStepComplete } = useWorkflow()
+  const notifications = useNotifications()
   const [activeTab, setActiveTab] = useState('executive')
+  const [analyticsData, setAnalyticsData] = useState<any>(null)
+  const [isExporting, setIsExporting] = useState(false)
 
   if (state.isLoading) {
     return <LoadingSpinner text="Loading analytics..." />
@@ -63,6 +70,98 @@ const Analytics: React.FC = () => {
     }
   ]
 
+  // Mark analytics as reviewed when user switches tabs or spends time
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateStepData('analytics', { analyticsReviewed: true })
+      markStepComplete('analytics', { analyticsReviewed: true })
+    }, 10000) // Mark as reviewed after 10 seconds
+
+    return () => clearTimeout(timer)
+  }, [activeTab, updateStepData, markStepComplete])
+
+  const handleExportPDF = async () => {
+    if (!state.selectedOrganization) return
+
+    try {
+      setIsExporting(true)
+      
+      // Collect data for export
+      const reportData = {
+        organization: state.selectedOrganization.name,
+        reportDate: new Date().toISOString().split('T')[0],
+        summary: analyticsData?.summary || {},
+        debtAnalysis: analyticsData?.technicalDebt || [],
+        recommendations: analyticsData?.recommendations || []
+      }
+
+      exportService.exportTechnicalDebtPDF(reportData)
+      
+      notifications.success(
+        'Export Complete',
+        'Technical debt report has been downloaded as PDF.'
+      )
+    } catch (error) {
+      notifications.error(
+        'Export Failed',
+        'Failed to export PDF report. Please try again.'
+      )
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleExportCSV = async () => {
+    if (!state.selectedOrganization || !analyticsData) return
+
+    try {
+      setIsExporting(true)
+      
+      const exportData = {
+        title: `Analytics_Data_${state.selectedOrganization.name}`,
+        data: analyticsData.technicalDebt || [],
+        columns: ['productArea', 'debtScore', 'category', 'ticketCounts', 'usageMetrics']
+      }
+
+      exportService.exportAsCSV(exportData)
+      
+      notifications.success(
+        'Export Complete',
+        'Analytics data has been downloaded as CSV.'
+      )
+    } catch (error) {
+      notifications.error(
+        'Export Failed',
+        'Failed to export CSV data. Please try again.'
+      )
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleShareDashboard = async () => {
+    if (!state.selectedOrganization) return
+
+    try {
+      const shareableLink = exportService.generateShareableLink(
+        state.selectedOrganization.name,
+        { tab: activeTab }
+      )
+      
+      await exportService.copyToClipboard(shareableLink)
+      
+      notifications.success(
+        'Link Copied',
+        'Shareable dashboard link has been copied to clipboard.'
+      )
+    } catch (error) {
+      notifications.error(
+        'Share Failed',
+        'Failed to copy shareable link. Please try again.'
+      )
+    }
+  }
+
   const renderTabContent = () => {
     const organization = state.selectedOrganization.name
 
@@ -101,11 +200,40 @@ const Analytics: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-        <p className="mt-2 text-gray-600">
-          Comprehensive analytics for {state.selectedOrganization.name}
-        </p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+          <p className="mt-2 text-gray-600">
+            Comprehensive analytics for {state.selectedOrganization.name}
+          </p>
+        </div>
+        
+        {/* Export Controls */}
+        <div className="flex space-x-2">
+          <button
+            onClick={handleExportPDF}
+            disabled={isExporting}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {isExporting ? 'Exporting...' : 'Export PDF'}
+          </button>
+          <button
+            onClick={handleExportCSV}
+            disabled={isExporting}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </button>
+          <button
+            onClick={handleShareDashboard}
+            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <Share2 className="h-4 w-4 mr-2" />
+            Share
+          </button>
+        </div>
       </div>
 
       {/* Tab Navigation */}
@@ -145,6 +273,28 @@ const Analytics: React.FC = () => {
       {/* Tab Content */}
       <div className="min-h-screen">
         {renderTabContent()}
+      </div>
+
+      {/* Workflow Navigation */}
+      <div className="mt-8 flex justify-between items-center p-4 bg-white rounded-lg shadow">
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={previousStep}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back: Configuration
+          </button>
+          <div className="text-sm text-gray-600">
+            Step 3 of 3: Analytics Review
+          </div>
+        </div>
+        <div className="flex items-center space-x-3">
+          <div className="flex items-center text-green-600">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            <span className="text-sm font-medium">Workflow Complete</span>
+          </div>
+        </div>
       </div>
     </div>
   )

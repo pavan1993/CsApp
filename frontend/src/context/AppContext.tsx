@@ -13,12 +13,36 @@ export interface User {
   email: string
 }
 
+export interface DataStatus {
+  ticketsUploaded: boolean
+  usageUploaded: boolean
+  lastTicketUpload?: string
+  lastUsageUpload?: string
+  ticketCount?: number
+  usageRecordCount?: number
+}
+
+export interface ConfigurationStatus {
+  mappingsConfigured: boolean
+  thresholdsConfigured: boolean
+  keyModulesConfigured: boolean
+  mappingsCount: number
+  thresholdsCount: number
+  keyModulesCount: number
+  isComplete: boolean
+}
+
 export interface AppState {
   selectedOrganization: Organization | null
   organizations: Organization[]
   user: User | null
   isLoading: boolean
   error: string | null
+  dataStatus: DataStatus
+  configurationStatus: ConfigurationStatus
+  lastRefresh: number
+  isOnline: boolean
+  cache: Record<string, { data: any; timestamp: number; ttl: number }>
 }
 
 export type AppAction =
@@ -27,6 +51,12 @@ export type AppAction =
   | { type: 'SET_ORGANIZATIONS'; payload: Organization[] }
   | { type: 'SET_SELECTED_ORGANIZATION'; payload: Organization | null }
   | { type: 'SET_USER'; payload: User | null }
+  | { type: 'SET_DATA_STATUS'; payload: Partial<DataStatus> }
+  | { type: 'SET_CONFIGURATION_STATUS'; payload: Partial<ConfigurationStatus> }
+  | { type: 'TRIGGER_REFRESH' }
+  | { type: 'SET_ONLINE_STATUS'; payload: boolean }
+  | { type: 'SET_CACHE'; payload: { key: string; data: any; ttl?: number } }
+  | { type: 'CLEAR_CACHE'; payload?: string }
   | { type: 'RESET_STATE' }
 
 // Initial state
@@ -36,6 +66,22 @@ const initialState: AppState = {
   user: null,
   isLoading: false,
   error: null,
+  dataStatus: {
+    ticketsUploaded: false,
+    usageUploaded: false
+  },
+  configurationStatus: {
+    mappingsConfigured: false,
+    thresholdsConfigured: false,
+    keyModulesConfigured: false,
+    mappingsCount: 0,
+    thresholdsCount: 0,
+    keyModulesCount: 0,
+    isComplete: false
+  },
+  lastRefresh: Date.now(),
+  isOnline: navigator.onLine,
+  cache: {}
 }
 
 // Reducer
@@ -51,6 +97,38 @@ function appReducer(state: AppState, action: AppAction): AppState {
       return { ...state, selectedOrganization: action.payload }
     case 'SET_USER':
       return { ...state, user: action.payload }
+    case 'SET_DATA_STATUS':
+      return { 
+        ...state, 
+        dataStatus: { ...state.dataStatus, ...action.payload }
+      }
+    case 'SET_CONFIGURATION_STATUS':
+      return { 
+        ...state, 
+        configurationStatus: { ...state.configurationStatus, ...action.payload }
+      }
+    case 'TRIGGER_REFRESH':
+      return { ...state, lastRefresh: Date.now() }
+    case 'SET_ONLINE_STATUS':
+      return { ...state, isOnline: action.payload }
+    case 'SET_CACHE':
+      return {
+        ...state,
+        cache: {
+          ...state.cache,
+          [action.payload.key]: {
+            data: action.payload.data,
+            timestamp: Date.now(),
+            ttl: action.payload.ttl || 300000 // 5 minutes default
+          }
+        }
+      }
+    case 'CLEAR_CACHE':
+      if (action.payload) {
+        const { [action.payload]: removed, ...rest } = state.cache
+        return { ...state, cache: rest }
+      }
+      return { ...state, cache: {} }
     case 'RESET_STATE':
       return initialState
     default:
