@@ -33,54 +33,57 @@ const WorkflowStepper: React.FC<WorkflowStepperProps> = ({
   return (
     <div className={`workflow-stepper ${className}`}>
       <nav aria-label="Progress">
-        <ol className="flex items-center">
+        <ol className="flex items-center justify-center space-x-8">
           {steps.map((step, stepIdx) => (
-            <li key={step.id} className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''}`}>
+            <li key={step.id} className="flex items-center">
+              {/* Step content */}
+              <div className="flex items-center">
+                {/* Step button */}
+                <button
+                  onClick={() => handleStepClick(step)}
+                  disabled={!step.isAccessible}
+                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${
+                    step.isComplete
+                      ? 'border-blue-600 bg-blue-600 hover:bg-blue-700'
+                      : step.isActive
+                      ? 'border-blue-600 bg-white'
+                      : step.isAccessible
+                      ? 'border-gray-300 bg-white hover:border-gray-400'
+                      : 'border-gray-200 bg-gray-50 cursor-not-allowed'
+                  }`}
+                  aria-current={step.isActive ? 'step' : undefined}
+                >
+                  <span className="sr-only">{step.title}</span>
+                  {step.isComplete ? (
+                    <Check className="h-4 w-4 text-white" aria-hidden="true" />
+                  ) : (
+                    <span className={`h-2.5 w-2.5 rounded-full ${
+                      step.isActive ? 'bg-blue-600' : 'bg-transparent'
+                    }`} />
+                  )}
+                </button>
+
+                {/* Step label */}
+                {showLabels && (
+                  <div className="ml-3">
+                    <div className={`text-sm font-medium ${
+                      step.isActive ? 'text-blue-600' : 'text-gray-500'
+                    }`}>
+                      {step.title}
+                    </div>
+                    <div className="text-xs text-gray-400">
+                      {step.description}
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Connector line */}
               {stepIdx !== steps.length - 1 && (
-                <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                  <div className={`h-0.5 w-full ${
-                    step.isComplete ? 'bg-blue-600' : 'bg-gray-200'
+                <div className="ml-8 flex items-center">
+                  <ChevronRight className={`h-4 w-4 ${
+                    step.isComplete ? 'text-blue-600' : 'text-gray-300'
                   }`} />
-                </div>
-              )}
-
-              {/* Step button */}
-              <button
-                onClick={() => handleStepClick(step)}
-                disabled={!step.isAccessible}
-                className={`relative flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors ${
-                  step.isComplete
-                    ? 'border-blue-600 bg-blue-600 hover:bg-blue-700'
-                    : step.isActive
-                    ? 'border-blue-600 bg-white'
-                    : step.isAccessible
-                    ? 'border-gray-300 bg-white hover:border-gray-400'
-                    : 'border-gray-200 bg-gray-50 cursor-not-allowed'
-                }`}
-                aria-current={step.isActive ? 'step' : undefined}
-              >
-                <span className="sr-only">{step.title}</span>
-                {step.isComplete ? (
-                  <Check className="h-5 w-5 text-white" aria-hidden="true" />
-                ) : (
-                  <span className={`h-2.5 w-2.5 rounded-full ${
-                    step.isActive ? 'bg-blue-600' : 'bg-transparent'
-                  }`} />
-                )}
-              </button>
-
-              {/* Step label */}
-              {showLabels && (
-                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-center min-w-max">
-                  <div className={`text-xs font-medium whitespace-nowrap ${
-                    step.isActive ? 'text-blue-600' : 'text-gray-500'
-                  }`}>
-                    {step.title}
-                  </div>
-                  <div className="text-xs text-gray-400 mt-1 whitespace-nowrap">
-                    {step.description}
-                  </div>
                 </div>
               )}
             </li>
