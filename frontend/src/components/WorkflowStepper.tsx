@@ -72,7 +72,7 @@ const WorkflowStepper: React.FC<WorkflowStepperProps> = ({
 
               {/* Step label */}
               {showLabels && (
-                <div className="absolute top-10 left-1/2 transform -translate-x-1/2 text-center min-w-max">
+                <div className="absolute top-12 left-1/2 transform -translate-x-1/2 text-center min-w-max">
                   <div className={`text-xs font-medium whitespace-nowrap ${
                     step.isActive ? 'text-blue-600' : 'text-gray-500'
                   }`}>
