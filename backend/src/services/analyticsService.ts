@@ -126,13 +126,13 @@ export class AnalyticsService {
     // Get product areas for the organization
     const productAreas = await prisma.productAreaMapping.findMany({
       where: { organization },
-      select: { productArea: true },
+      select: { productArea: true, dynatraceCapability: true },
       distinct: ['productArea'],
     });
 
     const correlations: UsageCorrelation[] = [];
 
-    for (const { productArea } of productAreas) {
+    for (const { productArea, dynatraceCapability } of productAreas) {
       // Get ticket count for last 30 days
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -145,9 +145,30 @@ export class AnalyticsService {
         },
       });
 
-      // Mock usage data for now since we need to check the correct schema
-      const currentUsageAmount = Math.floor(Math.random() * 1000);
-      const previousUsageAmount = Math.floor(Math.random() * 1000);
+      // Get actual usage data from Dynatrace usage table
+      const currentUsage = await prisma.dynatraceUsage.findFirst({
+        where: {
+          organization,
+          capability: dynatraceCapability,
+        },
+        orderBy: { uploadDate: 'desc' },
+      });
+
+      // Get previous usage data (from 30-60 days ago)
+      const sixtyDaysAgo = new Date();
+      sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+      const previousUsage = await prisma.dynatraceUsage.findFirst({
+        where: {
+          organization,
+          capability: dynatraceCapability,
+          uploadDate: { lt: thirtyDaysAgo, gte: sixtyDaysAgo },
+        },
+        orderBy: { uploadDate: 'desc' },
+      });
+
+      const currentUsageAmount = currentUsage?.last30DaysCost || 0;
+      const previousUsageAmount = previousUsage?.last30DaysCost || currentUsageAmount;
       
       const usageDropPercentage = previousUsageAmount > 0 
         ? ((previousUsageAmount - currentUsageAmount) / previousUsageAmount) * 100
@@ -339,10 +360,15 @@ export class AnalyticsService {
       select: { createdAt: true },
     });
 
-    // Mock usage date for now
+    const lastUsage = await prisma.dynatraceUsage.findFirst({
+      where: { organization },
+      orderBy: { uploadDate: 'desc' },
+      select: { uploadDate: true },
+    });
+
     return {
       tickets: lastTicket?.createdAt,
-      usage: undefined,
+      usage: lastUsage?.uploadDate,
     };
   }
 

@@ -216,25 +216,63 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
 
     if (errors.length > 0) {
       return res.status(207).json({
+        success: true,
         message: 'Partial success',
-        inserted: insertedUsage.length,
-        errors: errors,
-        data: insertedUsage
+        data: {
+          inserted: insertedUsage.length,
+          errors: errors,
+          records: insertedUsage
+        }
       });
     }
 
     return res.status(201).json({
+      success: true,
       message: 'Usage data uploaded successfully',
-      inserted: insertedUsage.length,
-      organization,
-      uploadDate,
-      data: insertedUsage
+      data: {
+        inserted: insertedUsage.length,
+        organization,
+        uploadDate,
+        records: insertedUsage
+      }
     });
 
   } catch (error: any) {
     console.error('Usage upload error:', error);
     return res.status(500).json({
       error: 'Failed to process usage upload',
+      details: error.message
+    });
+  }
+});
+
+// GET /api/usage/:organization - Get usage data for an organization
+router.get('/:organization', async (req: express.Request, res: express.Response) => {
+  try {
+    const { organization } = req.params;
+    
+    if (!organization) {
+      return res.status(400).json({ 
+        success: false,
+        error: 'Organization parameter is required' 
+      });
+    }
+
+    const usageData = await prisma.dynatraceUsage.findMany({
+      where: { organization },
+      orderBy: { uploadDate: 'desc' },
+    });
+
+    return res.json({
+      success: true,
+      data: usageData
+    });
+
+  } catch (error: any) {
+    console.error('Usage data fetch error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to fetch usage data',
       details: error.message
     });
   }

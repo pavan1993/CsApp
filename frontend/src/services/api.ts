@@ -206,7 +206,7 @@ class ApiService {
     }
   }
 
-  async uploadUsage(organization: string, file: File): Promise<{ message: string }> {
+  async uploadUsage(organization: string, file: File): Promise<{ message: string; data?: any }> {
     console.log('🔄 Uploading usage file:', file.name, 'for organization:', organization);
     const formData = new FormData()
     formData.append('file', file)
@@ -223,13 +223,19 @@ class ApiService {
       // Handle the backend response format: { success: true, data: T }
       if (response.data && typeof response.data === 'object' && 'success' in response.data) {
         if (response.data.success) {
-          return response.data.data || response.data;
+          return {
+            message: response.data.message || 'Upload successful',
+            data: response.data.data
+          };
         } else {
           throw new Error(response.data.message || 'Upload failed');
         }
       }
       
-      return response.data;
+      return {
+        message: response.data.message || 'Upload successful',
+        data: response.data
+      };
     } catch (error) {
       console.error('❌ Usage upload failed:', error);
       throw error;
@@ -411,6 +417,31 @@ class ApiService {
 
   async getRecommendations(organization: string, priority?: string) {
     return this.get(`/analytics/recommendations`, { organization, priority })
+  }
+
+  // Usage data methods
+  async getUsageData(organization: string) {
+    console.log('🔄 Fetching usage data for organization:', organization);
+    try {
+      const result = await this.get(`/usage/${organization}`);
+      console.log('✅ Usage data fetched successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch usage data:', error);
+      throw error;
+    }
+  }
+
+  async checkUsageUploadEligibility(organization: string) {
+    console.log('🔄 Checking usage upload eligibility for organization:', organization);
+    try {
+      const result = await this.get(`/usage/check-upload-eligibility/${organization}`);
+      console.log('✅ Upload eligibility check result:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to check upload eligibility:', error);
+      throw error;
+    }
   }
 }
 

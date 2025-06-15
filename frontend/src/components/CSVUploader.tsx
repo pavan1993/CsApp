@@ -185,8 +185,8 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
         isValid: true,
         errors: result.data?.errors || [],
         warnings: [],
-        rowCount: result.data?.inserted || 0,
-        validRows: result.data?.inserted || 0,
+        rowCount: result.data?.inserted || result.data?.records?.length || 0,
+        validRows: result.data?.inserted || result.data?.records?.length || 0,
         invalidRows: result.data?.errors?.length || 0
       }
       
@@ -196,7 +196,7 @@ const CSVUploader: React.FC<CSVUploaderProps> = ({
       onUploadComplete?.({
         ...result,
         validation: validationResult,
-        data: result.data?.tickets || [],
+        data: uploadType === 'tickets' ? (result.data?.tickets || []) : (result.data?.records || []),
         organizationsFound: result.data?.organizationsFound || []
       })
       
