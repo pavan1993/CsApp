@@ -206,14 +206,16 @@ class ApiService {
     }
   }
 
-  async uploadUsage(organization: string, file: File): Promise<{ message: string; data?: any }> {
-    console.log('🔄 Uploading usage file:', file.name, 'for organization:', organization);
+  async uploadUsage(organization: string, file: File, force: boolean = false): Promise<{ message: string; data?: any }> {
+    console.log('🔄 Uploading usage file:', file.name, 'for organization:', organization, 'force:', force);
     const formData = new FormData()
     formData.append('file', file)
     formData.append('organization', organization)
 
+    const url = force ? '/usage/upload?force=true' : '/usage/upload';
+
     try {
-      const response = await this.client.post('/usage/upload', formData, {
+      const response = await this.client.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -236,8 +238,19 @@ class ApiService {
         message: response.data.message || 'Upload successful',
         data: response.data
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Usage upload failed:', error);
+      
+      // Enhanced error handling for 409 conflicts
+      if (error.response?.status === 409) {
+        const errorData = error.response.data;
+        const enhancedError = new Error(errorData.message || 'Upload conflict');
+        (enhancedError as any).status = 409;
+        (enhancedError as any).daysSinceLastUpload = errorData.daysSinceLastUpload;
+        (enhancedError as any).lastUploadDate = errorData.lastUploadDate;
+        throw enhancedError;
+      }
+      
       throw error;
     }
   }
