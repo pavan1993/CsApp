@@ -71,10 +71,15 @@ else
 fi
 
 print_status "Building frontend image..."
-if docker build -f frontend/Dockerfile -t customer-success-frontend ./frontend > /dev/null 2>&1; then
+echo "Running: docker build -f frontend/Dockerfile -t customer-success-frontend ./frontend"
+if docker build -f frontend/Dockerfile -t customer-success-frontend ./frontend; then
     print_status "Frontend image built successfully"
 else
     print_error "Failed to build frontend image"
+    echo ""
+    echo "🔍 Frontend build logs:"
+    echo "======================"
+    docker build -f frontend/Dockerfile -t customer-success-frontend ./frontend 2>&1 | tail -20
     exit 1
 fi
 
