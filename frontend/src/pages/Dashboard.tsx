@@ -31,13 +31,47 @@ const Dashboard: React.FC = () => {
         // Fetch analytics data for the selected organization
         const analyticsData = await apiService.getExecutiveSummary(state.selectedOrganization.id)
         
+        console.log('📊 Executive summary data received:', analyticsData)
+        
+        // Try multiple possible data structures
+        const totalProductAreas = analyticsData.totalProductAreas || 
+                                 analyticsData.productAreas?.length || 
+                                 analyticsData.summary?.totalProductAreas || 0
+        
+        const totalTickets = analyticsData.totalTickets || 
+                            analyticsData.tickets?.total || 
+                            analyticsData.summary?.totalTickets || 0
+        
+        const criticalTickets = analyticsData.criticalIssues || 
+                               analyticsData.criticalTickets ||
+                               analyticsData.tickets?.critical || 
+                               analyticsData.summary?.criticalIssues || 0
+        
+        const technicalDebtScore = analyticsData.technicalDebtScore || 
+                                  analyticsData.debtScore ||
+                                  analyticsData.summary?.technicalDebtScore || 0
+        
+        const highRiskAreas = (analyticsData.riskDistribution?.high || 0) + 
+                             (analyticsData.riskDistribution?.critical || 0) ||
+                             analyticsData.highRiskAreas ||
+                             analyticsData.summary?.highRiskAreas || 0
+        
         setDashboardData({
           totalOrganizations: state.organizations.length,
-          totalProductAreas: analyticsData.totalProductAreas || 0,
-          totalTickets: analyticsData.totalTickets || 0,
-          criticalTickets: analyticsData.criticalIssues || 0,
-          averageTechnicalDebtScore: analyticsData.technicalDebtScore || 0,
-          highRiskAreas: analyticsData.riskDistribution?.high + analyticsData.riskDistribution?.critical || 0
+          totalProductAreas,
+          totalTickets,
+          criticalTickets,
+          averageTechnicalDebtScore: technicalDebtScore,
+          highRiskAreas
+        })
+        
+        console.log('📊 Dashboard data set:', {
+          totalOrganizations: state.organizations.length,
+          totalProductAreas,
+          totalTickets,
+          criticalTickets,
+          averageTechnicalDebtScore: technicalDebtScore,
+          highRiskAreas
         })
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
