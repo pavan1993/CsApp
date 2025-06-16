@@ -1,0 +1,10 @@
+Capability,Annual budget-to-date cost (USD),Last 0-30 days cost (USD),Organization
+Application Security,15000.50,1250.25,Acme Corporation
+Infrastructure Monitoring,22000.75,1850.60,Acme Corporation
+Log Management,8500.30,710.15,Acme Corporation
+Synthetic Monitoring,12000.00,1000.00,TechCorp Inc
+Real User Monitoring,18500.25,1540.80,TechCorp Inc
+Database Monitoring,9200.40,765.35,Global Solutions
+Network Monitoring,14500.60,1210.50,Global Solutions
+Cloud Automation,11000.20,920.15,Innovation Labs
+Performance Analytics,16800.90,1400.75,Digital Dynamics

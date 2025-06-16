@@ -1,0 +1,6 @@
+ID,Status,Requested,Organization,Subject,Updated,Assignee,Requester,Product Area,Reason for Contact,Severity
+1,Open,2024-01-15T10:00:00Z,Acme Corporation,Login issues with SSO,2024-01-15T10:30:00Z,John Doe,jane.smith@acme.com,Authentication,Technical Issue,CRITICAL
+2,Closed,2024-01-14T14:20:00Z,TechCorp Inc,Dashboard loading slowly,2024-01-15T09:15:00Z,Alice Johnson,bob.wilson@techcorp.com,Dashboard,Performance Issue,MODERATE
+3,In Progress,2024-01-13T16:45:00Z,Global Solutions,Export functionality not working,2024-01-14T11:30:00Z,Mike Brown,sarah.davis@global.com,Data Export,Bug Report,SEVERE
+4,Open,2024-01-12T09:30:00Z,Innovation Labs,Feature request for custom reports,2024-01-12T09:30:00Z,Lisa White,tom.anderson@innovation.com,Reporting,Feature Request,LOW
+5,Closed,2024-01-11T13:15:00Z,Digital Dynamics,API rate limiting issues,2024-01-13T16:20:00Z,David Lee,emma.taylor@digital.com,API,Technical Issue,SEVERE
