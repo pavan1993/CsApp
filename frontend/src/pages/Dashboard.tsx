@@ -42,12 +42,20 @@ const Dashboard: React.FC = () => {
         let criticalTickets = 0
         let totalProductAreas = 0
         
-        if (ticketBreakdown && Array.isArray(ticketBreakdown)) {
-          totalProductAreas = ticketBreakdown.length
-          ticketBreakdown.forEach(item => {
-            totalTickets += (item.critical || 0) + (item.severe || 0) + (item.moderate || 0) + (item.low || 0)
-            criticalTickets += (item.critical || 0)
+        if (ticketBreakdown && ticketBreakdown.breakdown && Array.isArray(ticketBreakdown.breakdown)) {
+          totalProductAreas = ticketBreakdown.breakdown.length
+          ticketBreakdown.breakdown.forEach(item => {
+            totalTickets += (item.severityCounts?.CRITICAL || 0) + 
+                           (item.severityCounts?.SEVERE || 0) + 
+                           (item.severityCounts?.MODERATE || 0) + 
+                           (item.severityCounts?.LOW || 0)
+            criticalTickets += (item.severityCounts?.CRITICAL || 0)
           })
+        } else if (ticketBreakdown && ticketBreakdown.summary) {
+          // Use summary data if breakdown array is empty
+          totalTickets = ticketBreakdown.summary.totalTickets || 0
+          criticalTickets = ticketBreakdown.summary.criticalTickets || 0
+          totalProductAreas = ticketBreakdown.summary.totalProductAreas || 0
         }
         
         // Calculate technical debt metrics
