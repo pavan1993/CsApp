@@ -68,6 +68,11 @@ const Dashboard: React.FC = () => {
             totalTickets = (counts.CRITICAL || 0) + (counts.SEVERE || 0) + 
                           (counts.MODERATE || 0) + (counts.LOW || 0)
             criticalTickets = counts.CRITICAL || 0
+          } else if (ticketBreakdown.summary.severityTotals) {
+            const totals = ticketBreakdown.summary.severityTotals
+            totalTickets = (totals.CRITICAL || 0) + (totals.SEVERE || 0) + 
+                          (totals.MODERATE || 0) + (totals.LOW || 0)
+            criticalTickets = totals.CRITICAL || 0
           }
         }
         
