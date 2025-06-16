@@ -355,6 +355,59 @@ router.get('/tickets/:organization', async (req, res) => {
   }
 });
 
+// Get technical debt analysis (general endpoint with query params)
+router.get('/technical-debt', async (req, res) => {
+  try {
+    const { organization, productArea } = req.query;
+
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization query parameter is required',
+      });
+      return;
+    }
+
+    const orgName = decodeURIComponent(organization as string);
+
+    if (productArea) {
+      // Get technical debt for specific product area
+      const result = await technicalDebtService.calculateTechnicalDebt(
+        orgName,
+        decodeURIComponent(productArea as string)
+      );
+
+      // Store the analysis result
+      await technicalDebtService.storeTechnicalDebtAnalysis(result);
+
+      res.json({
+        success: true,
+        data: result,
+      });
+    } else {
+      // Get technical debt for all product areas in organization
+      const results = await technicalDebtService.calculateOrganizationTechnicalDebt(orgName);
+
+      // Store all analysis results
+      for (const result of results) {
+        await technicalDebtService.storeTechnicalDebtAnalysis(result);
+      }
+
+      res.json({
+        success: true,
+        data: results,
+      });
+    }
+  } catch (error) {
+    console.error('Error fetching technical debt:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch technical debt',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Get usage correlation analysis
 router.get('/usage-correlation/:organization', async (req, res) => {
   try {
