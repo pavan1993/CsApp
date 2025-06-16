@@ -53,6 +53,85 @@ router.get('/organizations', async (req, res) => {
   }
 });
 
+// Get executive summary for a specific organization
+router.get('/executive-summary', async (req, res) => {
+  try {
+    const { organization } = req.query;
+
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization query parameter is required',
+      });
+      return;
+    }
+
+    const orgName = decodeURIComponent(organization as string);
+
+    // Get ticket breakdown for the organization
+    const ticketBreakdown = await analyticsService.getTicketBreakdown(orgName);
+    
+    // Get technical debt analysis for the organization
+    const technicalDebtResults = await technicalDebtService.calculateOrganizationTechnicalDebt(orgName);
+
+    // Calculate executive summary metrics
+    const totalTickets = ticketBreakdown.reduce((sum, area) => sum + area.totalTickets, 0);
+    const totalProductAreas = ticketBreakdown.length;
+    const criticalTickets = ticketBreakdown.reduce((sum, area) => sum + area.severityCounts.CRITICAL, 0);
+    const severeTickets = ticketBreakdown.reduce((sum, area) => sum + area.severityCounts.SEVERE, 0);
+    
+    const averageTechnicalDebtScore = technicalDebtResults.length > 0 
+      ? technicalDebtResults.reduce((sum, result) => sum + result.debtScore, 0) / technicalDebtResults.length
+      : 0;
+
+    // Risk distribution
+    const riskDistribution = technicalDebtResults.reduce(
+      (dist, result) => {
+        switch (result.category) {
+          case 'Good':
+            dist.good++;
+            break;
+          case 'Moderate Risk':
+            dist.moderate++;
+            break;
+          case 'High Risk':
+            dist.high++;
+            break;
+          case 'Critical':
+            dist.critical++;
+            break;
+        }
+        return dist;
+      },
+      { good: 0, moderate: 0, high: 0, critical: 0 }
+    );
+
+    // Calculate average usage score (mock calculation)
+    const averageUsageScore = 75; // This would come from actual usage data
+
+    res.json({
+      success: true,
+      data: {
+        totalProductAreas,
+        totalTickets,
+        criticalIssues: criticalTickets + severeTickets,
+        averageUsageScore,
+        technicalDebtScore: Math.round(averageTechnicalDebtScore * 10) / 10,
+        riskDistribution,
+        organization: orgName,
+        lastUpdated: new Date().toISOString(),
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching executive summary:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch executive summary',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
 // Get dashboard analytics for a specific organization
 router.get('/dashboard', async (req, res) => {
   try {

@@ -44,6 +44,15 @@ const Analytics: React.FC = () => {
     loadAnalyticsData()
   }, [state.selectedOrganization])
 
+  // Mark analytics as reviewed when user switches tabs or spends time
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      updateStepData('analytics', { analyticsReviewed: true })
+      markStepComplete('analytics', { analyticsReviewed: true })
+    }, 10000) // Mark as reviewed after 10 seconds
+
+    return () => clearTimeout(timer)
+  }, [activeTab, updateStepData, markStepComplete])
 
   if (state.isLoading || isLoadingAnalytics) {
     return <LoadingSpinner text="Loading analytics..." />
@@ -95,16 +104,6 @@ const Analytics: React.FC = () => {
       description: 'Historical trends and forecasting'
     }
   ]
-
-  // Mark analytics as reviewed when user switches tabs or spends time
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      updateStepData('analytics', { analyticsReviewed: true })
-      markStepComplete('analytics', { analyticsReviewed: true })
-    }, 10000) // Mark as reviewed after 10 seconds
-
-    return () => clearTimeout(timer)
-  }, [activeTab, updateStepData, markStepComplete])
 
   const handleExportPDF = async () => {
     if (!state.selectedOrganization) return
