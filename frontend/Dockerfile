@@ -14,9 +14,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Install missing dependencies and build the application
-RUN npm install jspdf xlsx || echo "Optional dependencies not installed"
-RUN npx vite build --mode production --external jspdf,xlsx || npx vite build --mode production --minify false || echo "Build completed with warnings"
+# Build the application
+RUN npm run build
 
 # Production stage with Nginx
 FROM nginx:alpine AS runner
@@ -25,7 +24,7 @@ FROM nginx:alpine AS runner
 RUN apk add --no-cache curl
 
 # Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY ../nginx.conf /etc/nginx/nginx.conf
 
 # Copy built application
 COPY --from=builder /app/dist /usr/share/nginx/html
