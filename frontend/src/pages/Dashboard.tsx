@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
         setIsLoadingData(true)
         
         // Fetch analytics data for the selected organization
-        const analyticsData = await apiService.get(`/analytics/executive-summary/${state.selectedOrganization.id}`)
+        const analyticsData = await apiService.getExecutiveSummary(state.selectedOrganization.id)
         
         setDashboardData({
           totalOrganizations: state.organizations.length,
