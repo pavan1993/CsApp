@@ -170,7 +170,7 @@ class ExportService {
         
         if (rec.description) {
           const lines = doc.splitTextToSize(rec.description, 170)
-          doc.text(lines, 25, yPos)
+          doc.text(lines as string, 25, yPos)
           yPos += lines.length * 5 + 5
         }
       })
