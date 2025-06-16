@@ -28,49 +28,56 @@ const Dashboard: React.FC = () => {
       try {
         setIsLoadingData(true)
         
-        // Fetch analytics data for the selected organization
-        const analyticsData = await apiService.getExecutiveSummary(state.selectedOrganization.id)
+        // Fetch multiple analytics endpoints to build dashboard data
+        const [ticketBreakdown, technicalDebtData] = await Promise.all([
+          apiService.get('/analytics/ticket-breakdown', { organization: state.selectedOrganization.id }).catch(() => null),
+          apiService.get('/analytics/technical-debt', { organization: state.selectedOrganization.id }).catch(() => null)
+        ])
         
-        console.log('📊 Executive summary data received:', analyticsData)
+        console.log('📊 Ticket breakdown data:', ticketBreakdown)
+        console.log('📊 Technical debt data:', technicalDebtData)
         
-        // Try multiple possible data structures
-        const totalProductAreas = analyticsData.totalProductAreas || 
-                                 analyticsData.productAreas?.length || 
-                                 analyticsData.summary?.totalProductAreas || 0
+        // Calculate totals from ticket breakdown
+        let totalTickets = 0
+        let criticalTickets = 0
+        let totalProductAreas = 0
         
-        const totalTickets = analyticsData.totalTickets || 
-                            analyticsData.tickets?.total || 
-                            analyticsData.summary?.totalTickets || 0
+        if (ticketBreakdown && Array.isArray(ticketBreakdown)) {
+          totalProductAreas = ticketBreakdown.length
+          ticketBreakdown.forEach(item => {
+            totalTickets += (item.critical || 0) + (item.severe || 0) + (item.moderate || 0) + (item.low || 0)
+            criticalTickets += (item.critical || 0)
+          })
+        }
         
-        const criticalTickets = analyticsData.criticalIssues || 
-                               analyticsData.criticalTickets ||
-                               analyticsData.tickets?.critical || 
-                               analyticsData.summary?.criticalIssues || 0
+        // Calculate technical debt metrics
+        let averageTechnicalDebtScore = 0
+        let highRiskAreas = 0
         
-        const technicalDebtScore = analyticsData.technicalDebtScore || 
-                                  analyticsData.debtScore ||
-                                  analyticsData.summary?.technicalDebtScore || 0
-        
-        const highRiskAreas = (analyticsData.riskDistribution?.high || 0) + 
-                             (analyticsData.riskDistribution?.critical || 0) ||
-                             analyticsData.highRiskAreas ||
-                             analyticsData.summary?.highRiskAreas || 0
+        if (technicalDebtData && Array.isArray(technicalDebtData)) {
+          const scores = technicalDebtData.map(item => item.debtScore || 0)
+          averageTechnicalDebtScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
+          
+          highRiskAreas = technicalDebtData.filter(item => 
+            item.category === 'High Risk' || item.category === 'Critical'
+          ).length
+        }
         
         setDashboardData({
           totalOrganizations: state.organizations.length,
           totalProductAreas,
           totalTickets,
           criticalTickets,
-          averageTechnicalDebtScore: technicalDebtScore,
+          averageTechnicalDebtScore,
           highRiskAreas
         })
         
-        console.log('📊 Dashboard data set:', {
+        console.log('📊 Dashboard data calculated:', {
           totalOrganizations: state.organizations.length,
           totalProductAreas,
           totalTickets,
           criticalTickets,
-          averageTechnicalDebtScore: technicalDebtScore,
+          averageTechnicalDebtScore,
           highRiskAreas
         })
       } catch (error) {
