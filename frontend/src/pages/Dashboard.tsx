@@ -21,21 +21,36 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     const fetchDashboardData = async () => {
       if (!state.selectedOrganization) {
+        setDashboardData({
+          totalOrganizations: state.organizations.length,
+          totalProductAreas: 0,
+          totalTickets: 0,
+          criticalTickets: 0,
+          averageTechnicalDebtScore: 0,
+          highRiskAreas: 0
+        })
         setIsLoadingData(false)
         return
       }
 
       try {
         setIsLoadingData(true)
+        console.log('📊 Fetching dashboard data for organization:', state.selectedOrganization.name)
         
         // Fetch multiple analytics endpoints to build dashboard data
         const [ticketBreakdown, technicalDebtData] = await Promise.all([
-          apiService.getTicketBreakdown(state.selectedOrganization.id).catch(() => null),
-          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.id).catch(() => null)
+          apiService.getTicketBreakdown(state.selectedOrganization.name).catch((error) => {
+            console.error('Failed to fetch ticket breakdown:', error)
+            return null
+          }),
+          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.name).catch((error) => {
+            console.error('Failed to fetch technical debt data:', error)
+            return null
+          })
         ])
         
-        console.log('📊 Ticket breakdown data:', ticketBreakdown)
-        console.log('📊 Technical debt data:', technicalDebtData)
+        console.log('📊 Ticket breakdown data for', state.selectedOrganization.name, ':', ticketBreakdown)
+        console.log('📊 Technical debt data for', state.selectedOrganization.name, ':', technicalDebtData)
         
         // Calculate totals from ticket breakdown
         let totalTickets = 0
@@ -98,7 +113,7 @@ const Dashboard: React.FC = () => {
           highRiskAreas
         })
         
-        console.log('📊 Dashboard data calculated:', {
+        console.log('📊 Dashboard data calculated for', state.selectedOrganization.name, ':', {
           totalOrganizations: state.organizations.length,
           totalProductAreas,
           totalTickets,
@@ -107,7 +122,7 @@ const Dashboard: React.FC = () => {
           highRiskAreas
         })
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error)
+        console.error('Failed to fetch dashboard data for', state.selectedOrganization?.name, ':', error)
         // Set default values on error
         setDashboardData({
           totalOrganizations: state.organizations.length,
@@ -123,7 +138,7 @@ const Dashboard: React.FC = () => {
     }
 
     fetchDashboardData()
-  }, [state.selectedOrganization, state.organizations.length, state.lastRefresh])
+  }, [state.selectedOrganization?.name, state.organizations.length, state.lastRefresh])
 
   if (state.isLoading || isLoadingData) {
     return <LoadingSpinner text="Loading dashboard..." />
