@@ -265,6 +265,96 @@ router.get('/technical-debt-history/:organization', async (req, res) => {
 });
 
 // Get ticket breakdown by product area and severity
+router.get('/tickets/breakdown', async (req, res) => {
+  try {
+    const { organization, startDate, endDate } = req.query;
+
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization query parameter is required',
+      });
+      return;
+    }
+
+    const start = startDate ? new Date(startDate as string) : undefined;
+    const end = endDate ? new Date(endDate as string) : undefined;
+
+    // Validate dates
+    if (start && isNaN(start.getTime())) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid start date format',
+      });
+      return;
+    }
+
+    if (end && isNaN(end.getTime())) {
+      res.status(400).json({
+        success: false,
+        message: 'Invalid end date format',
+      });
+      return;
+    }
+
+    if (start && end && start > end) {
+      res.status(400).json({
+        success: false,
+        message: 'Start date must be before end date',
+      });
+      return;
+    }
+
+    const breakdown = await analyticsService.getTicketBreakdown(
+      decodeURIComponent(organization as string),
+      start,
+      end
+    );
+
+    // Calculate summary statistics
+    const totalTickets = breakdown.reduce((sum, area) => sum + area.totalTickets, 0);
+    const averageResolutionTime = breakdown
+      .filter(area => area.averageResolutionTime !== undefined)
+      .reduce((sum, area, _, arr) => sum + (area.averageResolutionTime! / arr.length), 0);
+
+    const severityTotals = breakdown.reduce(
+      (totals, area) => ({
+        CRITICAL: totals.CRITICAL + area.severityCounts.CRITICAL,
+        SEVERE: totals.SEVERE + area.severityCounts.SEVERE,
+        MODERATE: totals.MODERATE + area.severityCounts.MODERATE,
+        LOW: totals.LOW + area.severityCounts.LOW,
+      }),
+      { CRITICAL: 0, SEVERE: 0, MODERATE: 0, LOW: 0 }
+    );
+
+    res.json({
+      success: true,
+      data: {
+        organization: decodeURIComponent(organization as string),
+        dateRange: {
+          startDate: start?.toISOString(),
+          endDate: end?.toISOString(),
+        },
+        summary: {
+          totalTickets,
+          totalProductAreas: breakdown.length,
+          averageResolutionTime: Math.round(averageResolutionTime),
+          severityTotals,
+        },
+        breakdown,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching ticket breakdown:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch ticket breakdown',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get tickets for a specific organization (legacy route)
 router.get('/tickets/:organization', async (req, res) => {
   try {
     const { organization } = req.params;
