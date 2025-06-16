@@ -4,10 +4,132 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO and Social Media Meta Tags -->
     <title>Customer Success Analytics</title>
+    <meta name="description" content="Comprehensive customer success analytics platform for tracking metrics, technical debt, and usage patterns." />
+    <meta name="keywords" content="customer success, analytics, dashboard, metrics, technical debt" />
+    <meta name="author" content="Customer Success Analytics Team" />
+    
+    <!-- Security Headers -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- Theme and App Icons -->
+    <meta name="theme-color" content="#3B82F6" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CS Analytics" />
+    
+    <!-- Performance Hints -->
+    <link rel="preload" href="/src/main.tsx" as="script" />
+    
+    <!-- Loading Styles -->
+    <style>
+      /* Loading spinner styles */
+      .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+      }
+      
+      .loading-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f4f6;
+        border-top: 4px solid #3b82f6;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+      
+      .loading-text {
+        margin-top: 16px;
+        color: #6b7280;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+      
+      /* Hide loading when app loads */
+      .app-loaded .loading-container {
+        display: none;
+      }
+      
+      /* Prevent flash of unstyled content */
+      #root {
+        min-height: 100vh;
+      }
+      
+      /* Error boundary styles */
+      .error-boundary {
+        padding: 20px;
+        text-align: center;
+        color: #dc2626;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+    </style>
   </head>
   <body>
+    <!-- Loading Screen -->
+    <div class="loading-container" id="loading">
+      <div>
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading Customer Success Analytics...</div>
+      </div>
+    </div>
+    
+    <!-- App Root -->
     <div id="root"></div>
+    
+    <!-- Error Fallback (shown if JavaScript fails to load) -->
+    <noscript>
+      <div class="error-boundary">
+        <h1>JavaScript Required</h1>
+        <p>This application requires JavaScript to run. Please enable JavaScript in your browser and refresh the page.</p>
+      </div>
+    </noscript>
+    
+    <!-- Main Application Script -->
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Hide loading screen when app loads -->
+    <script>
+      // Hide loading screen when DOM is ready
+      document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+          const loading = document.getElementById('loading');
+          if (loading) {
+            loading.style.opacity = '0';
+            loading.style.transition = 'opacity 0.3s ease-out';
+            setTimeout(function() {
+              loading.style.display = 'none';
+              document.body.classList.add('app-loaded');
+            }, 300);
+          }
+        }, 100);
+      });
+      
+      // Error handling for module loading
+      window.addEventListener('error', function(e) {
+        if (e.filename && e.filename.includes('main.tsx')) {
+          const root = document.getElementById('root');
+          if (root) {
+            root.innerHTML = '<div class="error-boundary"><h1>Application Error</h1><p>Failed to load the application. Please refresh the page or contact support.</p></div>';
+          }
+        }
+      });
+    </script>
   </body>
 </html>
