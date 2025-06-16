@@ -37,13 +37,16 @@ const Dashboard: React.FC = () => {
         setIsLoadingData(true)
         console.log('📊 Fetching dashboard data for organization:', state.selectedOrganization.name)
         
-        // Fetch multiple analytics endpoints to build dashboard data
+        // Clear cache for this organization to ensure fresh data
+        apiService.clearCache('analytics')
+        
+        // Fetch multiple analytics endpoints to build dashboard data with cache disabled
         const [ticketBreakdown, technicalDebtData] = await Promise.all([
-          apiService.getTicketBreakdown(state.selectedOrganization.name).catch((error) => {
+          apiService.get(`/analytics/tickets/breakdown`, { organization: state.selectedOrganization.name }, { cache: false }).catch((error) => {
             console.error('Failed to fetch ticket breakdown:', error)
             return null
           }),
-          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.name).catch((error) => {
+          apiService.get(`/analytics/technical-debt`, { organization: state.selectedOrganization.name }, { cache: false }).catch((error) => {
             console.error('Failed to fetch technical debt data:', error)
             return null
           })

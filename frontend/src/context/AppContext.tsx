@@ -94,7 +94,11 @@ function appReducer(state: AppState, action: AppAction): AppState {
     case 'SET_ORGANIZATIONS':
       return { ...state, organizations: action.payload }
     case 'SET_SELECTED_ORGANIZATION':
-      return { ...state, selectedOrganization: action.payload }
+      return { 
+        ...state, 
+        selectedOrganization: action.payload,
+        lastRefresh: Date.now() // Trigger refresh when organization changes
+      }
     case 'SET_USER':
       return { ...state, user: action.payload }
     case 'SET_DATA_STATUS':
