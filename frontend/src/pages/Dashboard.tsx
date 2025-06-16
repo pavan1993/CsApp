@@ -30,8 +30,8 @@ const Dashboard: React.FC = () => {
         
         // Fetch multiple analytics endpoints to build dashboard data
         const [ticketBreakdown, technicalDebtData] = await Promise.all([
-          apiService.get('/analytics/ticket-breakdown', { organization: state.selectedOrganization.id }).catch(() => null),
-          apiService.get('/analytics/technical-debt', { organization: state.selectedOrganization.id }).catch(() => null)
+          apiService.getTicketBreakdown(state.selectedOrganization.id).catch(() => null),
+          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.id).catch(() => null)
         ])
         
         console.log('📊 Ticket breakdown data:', ticketBreakdown)
