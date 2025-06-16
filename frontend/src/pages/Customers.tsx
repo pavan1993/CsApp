@@ -28,24 +28,23 @@ const Customers: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  // Convert organizations from context to customer format
   const [customers, setCustomers] = useState<Customer[]>([])
 
-  // Initialize customers from organizations in context
+  // Load customers from API
   React.useEffect(() => {
-    if (state.organizations.length > 0) {
-      const customerData = state.organizations.map((org, index) => ({
-        id: org.id,
-        name: org.name,
-        email: `admin@${org.name.toLowerCase().replace(/\s+/g, '')}.com`,
-        company: org.name,
-        status: 'ACTIVE' as const,
-        createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)).toISOString(), // Stagger dates
-        lastActivity: new Date(Date.now() - (Math.random() * 7 * 24 * 60 * 60 * 1000)).toISOString() // Random recent activity
-      }))
-      setCustomers(customerData)
+    const loadCustomers = async () => {
+      try {
+        const customerData = await apiService.getCustomers()
+        setCustomers(customerData)
+      } catch (error) {
+        console.error('Failed to load customers:', error)
+        // Show empty state on error
+        setCustomers([])
+      }
     }
-  }, [state.organizations])
+
+    loadCustomers()
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,12 +66,8 @@ const Customers: React.FC = () => {
         }
         setCustomers(prev => prev.map(c => c.id === editingCustomer.id ? updatedCustomer : c))
       } else {
-        // Create new customer/organization
-        const newCustomer: Customer = {
-          id: Date.now().toString(),
-          ...formData,
-          createdAt: new Date().toISOString()
-        }
+        // Create new customer/organization via API
+        const newCustomer = await apiService.createCustomer(formData)
         setCustomers(prev => [...prev, newCustomer])
         
         // Add to organizations list in context
@@ -102,6 +97,7 @@ const Customers: React.FC = () => {
   const handleDelete = async (id: string) => {
     try {
       setError(null)
+      await apiService.deleteCustomer(id)
       setCustomers(prev => prev.filter(c => c.id !== id))
       
       // Remove from organizations list in context

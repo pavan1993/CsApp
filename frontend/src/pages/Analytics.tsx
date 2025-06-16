@@ -18,8 +18,32 @@ const Analytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState('executive')
   const [analyticsData, setAnalyticsData] = useState<any>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false)
 
-  if (state.isLoading) {
+  // Load analytics data from API
+  useEffect(() => {
+    const loadAnalyticsData = async () => {
+      if (!state.selectedOrganization) {
+        setAnalyticsData(null)
+        return
+      }
+
+      try {
+        setIsLoadingAnalytics(true)
+        const data = await apiService.getAnalyticsData(state.selectedOrganization.name)
+        setAnalyticsData(data)
+      } catch (error) {
+        console.error('Failed to load analytics data:', error)
+        setAnalyticsData(null)
+      } finally {
+        setIsLoadingAnalytics(false)
+      }
+    }
+
+    loadAnalyticsData()
+  }, [state.selectedOrganization])
+
+  if (state.isLoading || isLoadingAnalytics) {
     return <LoadingSpinner text="Loading analytics..." />
   }
 

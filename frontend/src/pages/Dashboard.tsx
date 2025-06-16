@@ -35,126 +35,20 @@ const Dashboard: React.FC = () => {
 
       try {
         setIsLoadingData(true)
-        console.log('📊 Fetching dashboard data for organization:', state.selectedOrganization.name)
         
-        // Clear cache for this organization to ensure fresh data
-        apiService.clearCache('analytics')
-        
-        // Fetch multiple analytics endpoints to build dashboard data with cache disabled
-        const [ticketBreakdown, technicalDebtData] = await Promise.all([
-          apiService.getTicketBreakdown(state.selectedOrganization.name).catch((error) => {
-            console.error('Failed to fetch ticket breakdown:', error)
-            return null
-          }),
-          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.name).catch((error) => {
-            console.error('Failed to fetch technical debt data:', error)
-            return null
-          })
-        ])
-        
-        console.log('📊 Ticket breakdown data for', state.selectedOrganization.name, ':', ticketBreakdown)
-        console.log('📊 Technical debt data for', state.selectedOrganization.name, ':', technicalDebtData)
-        
-        // Calculate totals from ticket breakdown
-        let totalTickets = 0
-        let criticalTickets = 0
-        let totalProductAreas = 0
-        
-        console.log('📊 Processing ticket breakdown structure:', ticketBreakdown)
-        
-        if (ticketBreakdown) {
-          // First try to get data from breakdown array
-          if (ticketBreakdown.breakdown && Array.isArray(ticketBreakdown.breakdown) && ticketBreakdown.breakdown.length > 0) {
-            console.log('📊 Using breakdown array data')
-            totalProductAreas = ticketBreakdown.breakdown.length
-            ticketBreakdown.breakdown.forEach((item: any) => {
-              if (item.severityCounts) {
-                totalTickets += (item.severityCounts.CRITICAL || 0) + 
-                               (item.severityCounts.SEVERE || 0) + 
-                               (item.severityCounts.MODERATE || 0) + 
-                               (item.severityCounts.LOW || 0)
-                criticalTickets += (item.severityCounts.CRITICAL || 0)
-              }
-              if (item.totalTickets) {
-                totalTickets += item.totalTickets
-              }
-            })
-          }
-          
-          // Then try to get data from summary
-          if (ticketBreakdown.summary) {
-            console.log('📊 Processing summary data:', ticketBreakdown.summary)
-            
-            // Use summary totals if breakdown didn't provide data
-            if (totalTickets === 0 && ticketBreakdown.summary.totalTickets) {
-              totalTickets = ticketBreakdown.summary.totalTickets
-            }
-            if (criticalTickets === 0 && ticketBreakdown.summary.criticalTickets) {
-              criticalTickets = ticketBreakdown.summary.criticalTickets
-            }
-            if (totalProductAreas === 0 && ticketBreakdown.summary.totalProductAreas) {
-              totalProductAreas = ticketBreakdown.summary.totalProductAreas
-            }
-            
-            // Try severity counts in summary
-            if (ticketBreakdown.summary.severityCounts) {
-              const counts = ticketBreakdown.summary.severityCounts
-              if (totalTickets === 0) {
-                totalTickets = (counts.CRITICAL || 0) + (counts.SEVERE || 0) + 
-                              (counts.MODERATE || 0) + (counts.LOW || 0)
-              }
-              if (criticalTickets === 0) {
-                criticalTickets = counts.CRITICAL || 0
-              }
-            }
-          }
-          
-          // Fallback: try direct properties on the main object
-          if (totalTickets === 0 && ticketBreakdown.totalTickets) {
-            totalTickets = ticketBreakdown.totalTickets
-          }
-          if (criticalTickets === 0 && ticketBreakdown.criticalTickets) {
-            criticalTickets = ticketBreakdown.criticalTickets
-          }
-          if (totalProductAreas === 0 && ticketBreakdown.totalProductAreas) {
-            totalProductAreas = ticketBreakdown.totalProductAreas
-          }
-        }
-        
-        console.log('📊 Final calculated values:', { totalTickets, criticalTickets, totalProductAreas })
-        
-        // Calculate technical debt metrics
-        let averageTechnicalDebtScore = 0
-        let highRiskAreas = 0
-        
-        if (technicalDebtData && Array.isArray(technicalDebtData)) {
-          const scores = technicalDebtData.map(item => item.debtScore || 0)
-          averageTechnicalDebtScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0
-          
-          highRiskAreas = technicalDebtData.filter(item => 
-            item.category === 'High Risk' || item.category === 'Critical'
-          ).length
-        }
+        // Fetch dashboard summary from API
+        const dashboardSummary = await apiService.getDashboardSummary(state.selectedOrganization.name)
         
         setDashboardData({
           totalOrganizations: state.organizations.length,
-          totalProductAreas,
-          totalTickets,
-          criticalTickets,
-          averageTechnicalDebtScore,
-          highRiskAreas
-        })
-        
-        console.log('📊 Dashboard data calculated for', state.selectedOrganization.name, ':', {
-          totalOrganizations: state.organizations.length,
-          totalProductAreas,
-          totalTickets,
-          criticalTickets,
-          averageTechnicalDebtScore,
-          highRiskAreas
+          totalProductAreas: dashboardSummary.totalProductAreas || 0,
+          totalTickets: dashboardSummary.totalTickets || 0,
+          criticalTickets: dashboardSummary.criticalTickets || 0,
+          averageTechnicalDebtScore: dashboardSummary.averageTechnicalDebtScore || 0,
+          highRiskAreas: dashboardSummary.highRiskAreas || 0
         })
       } catch (error) {
-        console.error('Failed to fetch dashboard data for', state.selectedOrganization?.name, ':', error)
+        console.error('Failed to fetch dashboard data:', error)
         // Set default values on error
         setDashboardData({
           totalOrganizations: state.organizations.length,
