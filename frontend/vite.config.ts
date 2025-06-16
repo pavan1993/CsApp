@@ -45,9 +45,10 @@ export default defineConfig(({ mode }) => ({
           vendor: ['react', 'react-dom'],
           router: ['react-router-dom'],
           charts: ['recharts'],
-          utils: ['axios', 'clsx', 'tailwind-merge'],
+          utils: ['axios'],
         },
       },
+      external: [],
     },
     
     // Asset optimization
