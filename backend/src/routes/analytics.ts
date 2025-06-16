@@ -37,80 +37,130 @@ router.get('/organizations', async (req, res) => {
     console.log('📋 Fetching organizations...');
     const organizations = await analyticsService.getOrganizations();
     
-    // If no organizations found, return demo data
-    const finalOrganizations = organizations.length > 0 ? organizations : [
-      'Demo Organization 1',
-      'Demo Organization 2',
-      'Sample Corp',
-      'Test Company'
-    ];
-
-    console.log(`✅ Found ${finalOrganizations.length} organizations:`, finalOrganizations);
+    console.log(`✅ Found ${organizations.length} organizations:`, organizations);
 
     res.json({
       success: true,
-      data: finalOrganizations,
+      data: organizations,
     });
   } catch (error) {
     console.error('❌ Error fetching organizations:', error);
-    
-    // Return demo data even on error
-    const demoOrganizations = [
-      'Demo Organization 1',
-      'Demo Organization 2',
-      'Sample Corp',
-      'Test Company'
-    ];
-    
-    res.json({
-      success: true,
-      data: demoOrganizations,
-      warning: 'Using demo data due to database connection issues'
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch organizations',
+      error: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 });
 
-// Get dashboard analytics
+// Get dashboard analytics for a specific organization
 router.get('/dashboard', async (req, res) => {
   try {
-    // Get total customers
-    const totalCustomers = await prisma.customer.count();
+    const { organization } = req.query;
 
-    // Get average health score
-    const healthScoreResult = await prisma.customer.aggregate({
-      _avg: {
-        healthScore: true,
-      },
-    });
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization query parameter is required',
+      });
+      return;
+    }
 
-    // Get customers created this month
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const orgName = decodeURIComponent(organization as string);
 
-    const newCustomersThisMonth = await prisma.customer.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
-    });
+    // Get ticket breakdown for the organization
+    const ticketBreakdown = await analyticsService.getTicketBreakdown(orgName);
+    
+    // Get technical debt analysis for the organization
+    const technicalDebtResults = await technicalDebtService.calculateOrganizationTechnicalDebt(orgName);
 
-    // Get total interactions
-    const totalInteractions = await prisma.customerInteraction.count();
+    // Calculate dashboard metrics
+    const totalTickets = ticketBreakdown.reduce((sum, area) => sum + area.totalTickets, 0);
+    const totalProductAreas = ticketBreakdown.length;
+    const criticalTickets = ticketBreakdown.reduce((sum, area) => sum + area.severityCounts.CRITICAL, 0);
+    
+    const averageTechnicalDebtScore = technicalDebtResults.length > 0 
+      ? technicalDebtResults.reduce((sum, result) => sum + result.debtScore, 0) / technicalDebtResults.length
+      : 0;
 
-    // Calculate churn rate (mock data for now)
-    const churnRate = 2.1;
+    const highRiskAreas = technicalDebtResults.filter(result => 
+      result.category === 'High Risk' || result.category === 'Critical'
+    ).length;
+
+    // Get all organizations count
+    const allOrganizations = await analyticsService.getOrganizations();
+    const totalOrganizations = allOrganizations.length;
 
     res.json({
       success: true,
       data: {
-        totalCustomers,
-        averageHealthScore: healthScoreResult._avg.healthScore || 0,
-        newCustomersThisMonth,
-        totalInteractions,
-        churnRate,
-        monthlyRevenue: 405091, // Mock data
+        totalOrganizations,
+        totalProductAreas,
+        totalTickets,
+        criticalTickets,
+        averageTechnicalDebtScore: Math.round(averageTechnicalDebtScore * 10) / 10,
+        highRiskAreas,
+        organization: orgName,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching dashboard analytics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch dashboard analytics',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+// Get dashboard summary for a specific organization
+router.get('/dashboard/:organization', async (req, res) => {
+  try {
+    const { organization } = req.params;
+
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization is required',
+      });
+      return;
+    }
+
+    const orgName = decodeURIComponent(organization);
+
+    // Get ticket breakdown for the organization
+    const ticketBreakdown = await analyticsService.getTicketBreakdown(orgName);
+    
+    // Get technical debt analysis for the organization
+    const technicalDebtResults = await technicalDebtService.calculateOrganizationTechnicalDebt(orgName);
+
+    // Calculate dashboard metrics
+    const totalTickets = ticketBreakdown.reduce((sum, area) => sum + area.totalTickets, 0);
+    const totalProductAreas = ticketBreakdown.length;
+    const criticalTickets = ticketBreakdown.reduce((sum, area) => sum + area.severityCounts.CRITICAL, 0);
+    
+    const averageTechnicalDebtScore = technicalDebtResults.length > 0 
+      ? technicalDebtResults.reduce((sum, result) => sum + result.debtScore, 0) / technicalDebtResults.length
+      : 0;
+
+    const highRiskAreas = technicalDebtResults.filter(result => 
+      result.category === 'High Risk' || result.category === 'Critical'
+    ).length;
+
+    // Get all organizations count
+    const allOrganizations = await analyticsService.getOrganizations();
+    const totalOrganizations = allOrganizations.length;
+
+    res.json({
+      success: true,
+      data: {
+        totalOrganizations,
+        totalProductAreas,
+        totalTickets,
+        criticalTickets,
+        averageTechnicalDebtScore: Math.round(averageTechnicalDebtScore * 10) / 10,
+        highRiskAreas,
+        organization: orgName,
       },
     });
   } catch (error) {
