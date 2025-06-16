@@ -116,6 +116,15 @@ const TechnicalDebtDashboard: React.FC<TechnicalDebtDashboardProps> = ({ organiz
   }
 
   const getCategoryCounts = () => {
+    if (!data || data.length === 0) {
+      return {
+        'Good': 0,
+        'Moderate Risk': 0,
+        'High Risk': 0,
+        'Critical': 0
+      }
+    }
+    
     return {
       'Good': data.filter(d => d.category === 'Good').length,
       'Moderate Risk': data.filter(d => d.category === 'Moderate Risk').length,
@@ -125,15 +134,19 @@ const TechnicalDebtDashboard: React.FC<TechnicalDebtDashboardProps> = ({ organiz
   }
 
   const getAverageDebtScore = () => {
-    if (data.length === 0) return 0
-    return Math.round(data.reduce((sum, item) => sum + item.debtScore, 0) / data.length)
+    if (!data || data.length === 0) return 0
+    const validScores = data.filter(item => !isNaN(item.debtScore) && item.debtScore !== null)
+    if (validScores.length === 0) return 0
+    return Math.round(validScores.reduce((sum, item) => sum + item.debtScore, 0) / validScores.length)
   }
 
   const getHighPriorityActions = () => {
+    if (!data || data.length === 0) return []
+    
     return data
       .filter(item => item.category === 'Critical' || item.category === 'High Risk')
       .flatMap(item => 
-        item.recommendations.map(rec => ({
+        (item.recommendations || []).map(rec => ({
           productArea: item.productArea,
           recommendation: rec,
           priority: item.category === 'Critical' ? 'urgent' : 'high',
@@ -157,6 +170,32 @@ const TechnicalDebtDashboard: React.FC<TechnicalDebtDashboardProps> = ({ organiz
         >
           Retry
         </button>
+      </div>
+    )
+  }
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+        <div className="text-center">
+          <AlertCircle className="mx-auto h-12 w-12 text-yellow-400" />
+          <h3 className="mt-2 text-sm font-medium text-yellow-900">No Technical Debt Data</h3>
+          <p className="mt-1 text-sm text-yellow-700">
+            No technical debt analysis data is available for {organization}. 
+            This could be because:
+          </p>
+          <ul className="mt-2 text-sm text-yellow-700 text-left max-w-md mx-auto">
+            <li>• No tickets have been uploaded for this organization</li>
+            <li>• No usage data has been uploaded</li>
+            <li>• Product area mappings haven't been configured</li>
+          </ul>
+          <button 
+            onClick={fetchTechnicalDebtData}
+            className="mt-4 text-sm text-yellow-600 hover:text-yellow-800 underline"
+          >
+            Retry Analysis
+          </button>
+        </div>
       </div>
     )
   }
@@ -235,24 +274,33 @@ const TechnicalDebtDashboard: React.FC<TechnicalDebtDashboardProps> = ({ organiz
           </div>
           
           <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={sortedData} layout="horizontal">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" domain={[0, 100]} />
-                <YAxis type="category" dataKey="productArea" width={100} fontSize={12} />
-                <Tooltip 
-                  formatter={(value: any, name: any, props: any) => [
-                    `${value} (${props.payload.category})`,
-                    'Debt Score'
-                  ]}
-                />
-                <Bar dataKey="debtScore" radius={[0, 4, 4, 0]}>
-                  {sortedData.map((entry, index) => (
-                    <Bar key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {sortedData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={sortedData} layout="horizontal">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" domain={[0, 100]} />
+                  <YAxis type="category" dataKey="productArea" width={100} fontSize={12} />
+                  <Tooltip 
+                    formatter={(value: any, name: any, props: any) => [
+                      `${value} (${props.payload.category})`,
+                      'Debt Score'
+                    ]}
+                  />
+                  <Bar dataKey="debtScore" radius={[0, 4, 4, 0]}>
+                    {sortedData.map((entry, index) => (
+                      <Bar key={`cell-${index}`} fill={CATEGORY_COLORS[entry.category]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-500">
+                <div className="text-center">
+                  <AlertCircle className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+                  <p className="text-sm">No data available for selected filters</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -264,40 +312,48 @@ const TechnicalDebtDashboard: React.FC<TechnicalDebtDashboardProps> = ({ organiz
           </h3>
           
           <div className="space-y-3 max-h-64 overflow-y-auto">
-            {highPriorityActions.map((action, index) => (
-              <div key={index} className={`p-3 rounded-lg border-l-4 ${
-                action.priority === 'urgent' 
-                  ? 'bg-red-50 border-red-400' 
-                  : 'bg-yellow-50 border-yellow-400'
-              }`}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <p className={`text-sm font-medium ${
-                      action.priority === 'urgent' ? 'text-red-900' : 'text-yellow-900'
+            {highPriorityActions.length > 0 ? (
+              highPriorityActions.map((action, index) => (
+                <div key={index} className={`p-3 rounded-lg border-l-4 ${
+                  action.priority === 'urgent' 
+                    ? 'bg-red-50 border-red-400' 
+                    : 'bg-yellow-50 border-yellow-400'
+                }`}>
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className={`text-sm font-medium ${
+                        action.priority === 'urgent' ? 'text-red-900' : 'text-yellow-900'
+                      }`}>
+                        {action.productArea}
+                        {action.isKeyModule && (
+                          <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                            Key Module
+                          </span>
+                        )}
+                      </p>
+                      <p className={`text-sm mt-1 ${
+                        action.priority === 'urgent' ? 'text-red-700' : 'text-yellow-700'
+                      }`}>
+                        {action.recommendation}
+                      </p>
+                    </div>
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                      action.priority === 'urgent' 
+                        ? 'bg-red-100 text-red-800' 
+                        : 'bg-yellow-100 text-yellow-800'
                     }`}>
-                      {action.productArea}
-                      {action.isKeyModule && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                          Key Module
-                        </span>
-                      )}
-                    </p>
-                    <p className={`text-sm mt-1 ${
-                      action.priority === 'urgent' ? 'text-red-700' : 'text-yellow-700'
-                    }`}>
-                      {action.recommendation}
-                    </p>
+                      {action.priority.toUpperCase()}
+                    </span>
                   </div>
-                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                    action.priority === 'urgent' 
-                      ? 'bg-red-100 text-red-800' 
-                      : 'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {action.priority.toUpperCase()}
-                  </span>
                 </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <CheckCircle className="mx-auto h-8 w-8 text-green-400 mb-2" />
+                <p className="text-sm text-gray-500">No high priority actions required</p>
+                <p className="text-xs text-gray-400 mt-1">All areas are in good condition</p>
               </div>
-            ))}
+            )}
           </div>
         </div>
       </div>
