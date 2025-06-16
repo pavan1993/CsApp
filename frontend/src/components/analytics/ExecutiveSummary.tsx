@@ -88,7 +88,9 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({ organization }) => 
         totalProductAreas: executiveSummary.totalProductAreas || ticketBreakdown.breakdown?.length || 0,
         totalTickets: executiveSummary.totalTickets || ticketBreakdown.summary?.totalTickets || 0,
         criticalIssues: executiveSummary.criticalIssues || ticketBreakdown.summary?.severityTotals?.CRITICAL || 0,
-        averageUsageScore: executiveSummary.averageUsageScore || 75,
+        averageUsageScore: executiveSummary.averageUsageScore || 
+          (technicalDebt.length > 0 ? Math.round(technicalDebt.reduce((sum: number, item: any) => 
+            sum + (item.usageMetrics?.currentUsage || 0), 0) / technicalDebt.length) : 0),
         technicalDebtScore: executiveSummary.technicalDebtScore || 
           (technicalDebt.length > 0 ? technicalDebt.reduce((sum: number, item: any) => sum + item.debtScore, 0) / technicalDebt.length : 0),
         riskDistribution: executiveSummary.riskDistribution || {
