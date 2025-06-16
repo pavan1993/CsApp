@@ -42,7 +42,8 @@ const Dashboard: React.FC = () => {
         let criticalTickets = 0
         let totalProductAreas = 0
         
-        if (ticketBreakdown && ticketBreakdown.breakdown && Array.isArray(ticketBreakdown.breakdown)) {
+        if (ticketBreakdown && ticketBreakdown.breakdown && Array.isArray(ticketBreakdown.breakdown) && ticketBreakdown.breakdown.length > 0) {
+          // Use breakdown data if available
           totalProductAreas = ticketBreakdown.breakdown.length
           ticketBreakdown.breakdown.forEach(item => {
             totalTickets += (item.severityCounts?.CRITICAL || 0) + 
@@ -52,10 +53,22 @@ const Dashboard: React.FC = () => {
             criticalTickets += (item.severityCounts?.CRITICAL || 0)
           })
         } else if (ticketBreakdown && ticketBreakdown.summary) {
-          // Use summary data if breakdown array is empty
-          totalTickets = ticketBreakdown.summary.totalTickets || 0
-          criticalTickets = ticketBreakdown.summary.criticalTickets || 0
-          totalProductAreas = ticketBreakdown.summary.totalProductAreas || 0
+          // Use summary data if breakdown array is empty or doesn't exist
+          console.log('📊 Using summary data:', ticketBreakdown.summary)
+          totalTickets = ticketBreakdown.summary.totalTickets || 
+                        ticketBreakdown.summary.total || 0
+          criticalTickets = ticketBreakdown.summary.criticalTickets || 
+                           ticketBreakdown.summary.critical || 0
+          totalProductAreas = ticketBreakdown.summary.totalProductAreas || 
+                             ticketBreakdown.summary.productAreas || 0
+          
+          // Try to extract from severity counts if available
+          if (ticketBreakdown.summary.severityCounts) {
+            const counts = ticketBreakdown.summary.severityCounts
+            totalTickets = (counts.CRITICAL || 0) + (counts.SEVERE || 0) + 
+                          (counts.MODERATE || 0) + (counts.LOW || 0)
+            criticalTickets = counts.CRITICAL || 0
+          }
         }
         
         // Calculate technical debt metrics
