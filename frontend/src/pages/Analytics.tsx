@@ -9,6 +9,7 @@ import UsageCorrelation from '../components/analytics/UsageCorrelation'
 import TechnicalDebtDashboard from '../components/analytics/TechnicalDebtDashboard'
 import TrendAnalysis from '../components/analytics/TrendAnalysis'
 import { exportService } from '../services/exportService'
+import { apiService } from '../services/api'
 import { BarChart3, TrendingUp, Activity, AlertTriangle, FileText, Download, Share2, ArrowLeft, CheckCircle } from 'lucide-react'
 
 const Analytics: React.FC = () => {

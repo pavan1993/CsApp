@@ -563,6 +563,69 @@ class ApiService {
       throw error;
     }
   }
+
+  // Customer management methods
+  async getCustomers() {
+    console.log('🔄 Fetching customers');
+    try {
+      const result = await this.get('/customers');
+      console.log('✅ Customers fetched successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch customers:', error);
+      throw error;
+    }
+  }
+
+  async createCustomer(customerData: any) {
+    console.log('🔄 Creating customer:', customerData);
+    try {
+      const result = await this.post('/customers', customerData);
+      console.log('✅ Customer created successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to create customer:', error);
+      throw error;
+    }
+  }
+
+  async deleteCustomer(customerId: string) {
+    console.log('🔄 Deleting customer:', customerId);
+    try {
+      const result = await this.delete(`/customers/${customerId}`);
+      console.log('✅ Customer deleted successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to delete customer:', error);
+      throw error;
+    }
+  }
+
+  // Analytics data methods
+  async getAnalyticsData(organization: string) {
+    console.log('🔄 Fetching analytics data for organization:', organization);
+    try {
+      const result = await this.get(`/analytics/data/${organization}`, undefined, { cache: true, ttl: 180000 });
+      console.log('✅ Analytics data fetched successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch analytics data:', error);
+      throw error;
+    }
+  }
+
+  // Dashboard summary method
+  async getDashboardSummary(organization: string) {
+    console.log('🔄 Fetching dashboard summary for organization:', organization);
+    try {
+      const result = await this.get(`/analytics/dashboard-summary/${organization}`, undefined, { cache: true, ttl: 180000 });
+      console.log('✅ Dashboard summary fetched successfully:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Failed to fetch dashboard summary:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance
