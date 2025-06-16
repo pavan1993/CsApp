@@ -605,7 +605,20 @@ class ApiService {
   async getAnalyticsData(organization: string) {
     console.log('🔄 Fetching analytics data for organization:', organization);
     try {
-      const result = await this.get(`/analytics/data/${organization}`, undefined, { cache: true, ttl: 180000 });
+      // Use existing analytics endpoints to build comprehensive data
+      const [executiveSummary, technicalDebt, ticketBreakdown] = await Promise.all([
+        this.getExecutiveSummary(organization).catch(() => null),
+        this.getTechnicalDebtAnalysis(organization).catch(() => null),
+        this.getTicketBreakdown(organization).catch(() => null)
+      ]);
+      
+      const result = {
+        summary: executiveSummary,
+        technicalDebt,
+        ticketBreakdown,
+        organization
+      };
+      
       console.log('✅ Analytics data fetched successfully:', result);
       return result;
     } catch (error) {
@@ -618,8 +631,57 @@ class ApiService {
   async getDashboardSummary(organization: string) {
     console.log('🔄 Fetching dashboard summary for organization:', organization);
     try {
-      const result = await this.get(`/analytics/dashboard-summary/${organization}`, undefined, { cache: true, ttl: 180000 });
-      console.log('✅ Dashboard summary fetched successfully:', result);
+      // Use existing analytics endpoints to build dashboard summary
+      const [ticketBreakdown, technicalDebt, executiveSummary] = await Promise.all([
+        this.getTicketBreakdown(organization).catch(() => null),
+        this.getTechnicalDebtAnalysis(organization).catch(() => null),
+        this.getExecutiveSummary(organization).catch(() => null)
+      ]);
+      
+      // Calculate summary metrics from the data
+      let totalProductAreas = 0;
+      let totalTickets = 0;
+      let criticalTickets = 0;
+      let averageTechnicalDebtScore = 0;
+      let highRiskAreas = 0;
+      
+      // Extract data from ticket breakdown
+      if (ticketBreakdown?.breakdown) {
+        totalProductAreas = ticketBreakdown.breakdown.length;
+        ticketBreakdown.breakdown.forEach((item: any) => {
+          if (item.severityCounts) {
+            totalTickets += Object.values(item.severityCounts).reduce((a: any, b: any) => a + b, 0);
+            criticalTickets += item.severityCounts.CRITICAL || 0;
+          }
+        });
+      }
+      
+      // Extract data from technical debt analysis
+      if (technicalDebt && Array.isArray(technicalDebt)) {
+        const scores = technicalDebt.map((item: any) => item.debtScore || 0);
+        averageTechnicalDebtScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+        highRiskAreas = technicalDebt.filter((item: any) => 
+          item.category === 'High Risk' || item.category === 'Critical'
+        ).length;
+      }
+      
+      // Use executive summary if available
+      if (executiveSummary) {
+        totalProductAreas = executiveSummary.totalProductAreas || totalProductAreas;
+        totalTickets = executiveSummary.totalTickets || totalTickets;
+        criticalTickets = executiveSummary.criticalIssues || criticalTickets;
+        averageTechnicalDebtScore = executiveSummary.technicalDebtScore || averageTechnicalDebtScore;
+      }
+      
+      const result = {
+        totalProductAreas,
+        totalTickets,
+        criticalTickets,
+        averageTechnicalDebtScore,
+        highRiskAreas
+      };
+      
+      console.log('✅ Dashboard summary calculated:', result);
       return result;
     } catch (error) {
       console.error('❌ Failed to fetch dashboard summary:', error);

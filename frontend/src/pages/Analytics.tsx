@@ -44,6 +44,7 @@ const Analytics: React.FC = () => {
     loadAnalyticsData()
   }, [state.selectedOrganization])
 
+
   if (state.isLoading || isLoadingAnalytics) {
     return <LoadingSpinner text="Loading analytics..." />
   }
