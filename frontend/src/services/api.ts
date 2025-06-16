@@ -194,7 +194,7 @@ class ApiService {
     }
   }
 
-  async post<T>(url: string, data?: any, options?: { optimistic?: boolean }): Promise<T> {
+  async post<T>(url: string, data?: any): Promise<T> {
     // Clear related cache entries
     this.clearCache(url.split('/')[1])
     
@@ -202,7 +202,7 @@ class ApiService {
     return response.data.data
   }
 
-  async put<T>(url: string, data?: any, options?: { optimistic?: boolean }): Promise<T> {
+  async put<T>(url: string, data?: any): Promise<T> {
     // Clear related cache entries
     this.clearCache(url.split('/')[1])
     
@@ -210,7 +210,7 @@ class ApiService {
     return response.data.data
   }
 
-  async delete<T>(url: string, options?: { optimistic?: boolean }): Promise<T> {
+  async delete<T>(url: string): Promise<T> {
     // Clear related cache entries
     this.clearCache(url.split('/')[1])
     
@@ -646,14 +646,17 @@ class ApiService {
       let highRiskAreas = 0;
       
       // Extract data from ticket breakdown
-      if (ticketBreakdown?.breakdown) {
-        totalProductAreas = ticketBreakdown.breakdown.length;
-        ticketBreakdown.breakdown.forEach((item: any) => {
-          if (item.severityCounts) {
-            totalTickets += Object.values(item.severityCounts).reduce((a: any, b: any) => a + b, 0);
-            criticalTickets += item.severityCounts.CRITICAL || 0;
-          }
-        });
+      if (ticketBreakdown && typeof ticketBreakdown === 'object' && 'breakdown' in ticketBreakdown) {
+        const breakdown = (ticketBreakdown as any).breakdown;
+        if (Array.isArray(breakdown)) {
+          totalProductAreas = breakdown.length;
+          breakdown.forEach((item: any) => {
+            if (item.severityCounts) {
+              totalTickets += Object.values(item.severityCounts).reduce((a: any, b: any) => a + b, 0);
+              criticalTickets += item.severityCounts.CRITICAL || 0;
+            }
+          });
+        }
       }
       
       // Extract data from technical debt analysis
@@ -666,11 +669,12 @@ class ApiService {
       }
       
       // Use executive summary if available
-      if (executiveSummary) {
-        totalProductAreas = executiveSummary.totalProductAreas || totalProductAreas;
-        totalTickets = executiveSummary.totalTickets || totalTickets;
-        criticalTickets = executiveSummary.criticalIssues || criticalTickets;
-        averageTechnicalDebtScore = executiveSummary.technicalDebtScore || averageTechnicalDebtScore;
+      if (executiveSummary && typeof executiveSummary === 'object') {
+        const summary = executiveSummary as any;
+        totalProductAreas = summary.totalProductAreas || totalProductAreas;
+        totalTickets = summary.totalTickets || totalTickets;
+        criticalTickets = summary.criticalIssues || criticalTickets;
+        averageTechnicalDebtScore = summary.technicalDebtScore || averageTechnicalDebtScore;
       }
       
       const result = {

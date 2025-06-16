@@ -1,11 +1,28 @@
-import jsPDF from 'jspdf'
-import 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+// Import with proper error handling for optional dependencies
+let jsPDF: any = null;
+let XLSX: any = null;
 
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF
-  }
+try {
+  jsPDF = require('jspdf');
+  require('jspdf-autotable');
+} catch (e) {
+  console.warn('jsPDF not available - PDF export disabled');
+}
+
+try {
+  XLSX = require('xlsx');
+} catch (e) {
+  console.warn('XLSX not available - Excel export disabled');
+}
+
+// Type declaration for jsPDF with autoTable
+interface PDFDocument {
+  autoTable: (options: any) => any;
+  setFontSize: (size: number) => void;
+  text: (text: string, x: number, y: number) => void;
+  addPage: () => void;
+  save: (filename: string) => void;
+  splitTextToSize: (text: string, maxWidth: number) => string[];
 }
 
 export interface ExportData {
@@ -48,6 +65,10 @@ class ExportService {
 
   // Export data as Excel
   exportAsExcel(exportData: ExportData): void {
+    if (!XLSX) {
+      throw new Error('Excel export not available - XLSX library not loaded')
+    }
+
     const { title, data, columns } = exportData
     
     if (!data || data.length === 0) {
@@ -75,7 +96,11 @@ class ExportService {
     debtAnalysis: any[]
     recommendations: any[]
   }): void {
-    const doc = new jsPDF()
+    if (!jsPDF) {
+      throw new Error('PDF export not available - jsPDF library not loaded')
+    }
+
+    const doc = new jsPDF() as PDFDocument
     
     // Title
     doc.setFontSize(20)
@@ -166,7 +191,11 @@ class ExportService {
     }>
     summary: any
   }): void {
-    const doc = new jsPDF()
+    if (!jsPDF) {
+      throw new Error('PDF export not available - jsPDF library not loaded')
+    }
+
+    const doc = new jsPDF() as PDFDocument
     
     // Title
     doc.setFontSize(20)
@@ -194,7 +223,7 @@ class ExportService {
     }
 
     // Charts section (simplified text representation)
-    data.charts.forEach((chart, index) => {
+    data.charts.forEach((chart) => {
       if (yPos > 250) {
         doc.addPage()
         yPos = 20

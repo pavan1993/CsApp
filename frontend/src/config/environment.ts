@@ -2,7 +2,7 @@
 export const config = {
   // API Configuration
   apiUrl: (() => {
-    const envUrl = import.meta.env.VITE_API_URL;
+    const envUrl = (import.meta as any).env?.VITE_API_URL;
     if (envUrl && !envUrl.includes(':5000')) {
       // If VITE_API_URL is set and not pointing to port 5000, use it
       return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
@@ -10,15 +10,15 @@ export const config = {
     // Always use port 3001 as default or if env points to wrong port
     return 'http://localhost:3001/api';
   })(),
-  apiTimeout: parseInt(import.meta.env.VITE_API_TIMEOUT || '10000'),
+  apiTimeout: parseInt((import.meta as any).env?.VITE_API_TIMEOUT || '10000'),
   
   // App Configuration
-  appName: import.meta.env.VITE_APP_NAME || 'Customer Success Analytics',
-  defaultOrganization: import.meta.env.VITE_DEFAULT_ORGANIZATION || '',
+  appName: (import.meta as any).env?.VITE_APP_NAME || 'Customer Success Analytics',
+  defaultOrganization: (import.meta as any).env?.VITE_DEFAULT_ORGANIZATION || '',
   
   // Environment
-  isDevelopment: import.meta.env.DEV,
-  isProduction: import.meta.env.PROD,
+  isDevelopment: (import.meta as any).env?.DEV || false,
+  isProduction: (import.meta as any).env?.PROD || false,
   
   // Feature flags (can be expanded later)
   features: {
@@ -35,7 +35,7 @@ export function validateEnvironment(): void {
   ]
   
   const missingVars = requiredVars.filter(
-    varName => !import.meta.env[varName]
+    varName => !(import.meta as any).env?.[varName]
   )
   
   if (missingVars.length > 0) {
@@ -58,7 +58,7 @@ console.log('Frontend API Configuration:', {
   currentOrigin: window.location.origin,
   expectedBackendPort: 3001,
   actualConfiguredUrl: config.apiUrl,
-  env: import.meta.env
+  env: (import.meta as any).env || {}
 })
 
 // Warn if configuration seems wrong
