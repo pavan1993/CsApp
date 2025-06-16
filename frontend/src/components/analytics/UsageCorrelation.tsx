@@ -50,60 +50,25 @@ const UsageCorrelation: React.FC<UsageCorrelationProps> = ({ organization }) => 
     setError(null)
     
     try {
-      // Mock data for now - replace with actual API call
-      const mockData: CorrelationData[] = [
-        {
-          productArea: 'Authentication',
-          ticketCount: 40,
-          usageScore: 85,
-          usageChange: -5,
-          riskLevel: 'medium',
-          dynatraceCapability: 'Application Security'
-        },
-        {
-          productArea: 'Payment Processing',
-          ticketCount: 36,
-          usageScore: 92,
-          usageChange: 3,
-          riskLevel: 'low',
-          dynatraceCapability: 'Real User Monitoring'
-        },
-        {
-          productArea: 'User Management',
-          ticketCount: 45,
-          usageScore: 78,
-          usageChange: -12,
-          riskLevel: 'high',
-          dynatraceCapability: 'Session Replay'
-        },
-        {
-          productArea: 'Reporting',
-          ticketCount: 35,
-          usageScore: 65,
-          usageChange: -20,
-          riskLevel: 'critical',
-          dynatraceCapability: 'Database Monitoring'
-        },
-        {
-          productArea: 'API Gateway',
-          ticketCount: 30,
-          usageScore: 88,
-          usageChange: 8,
-          riskLevel: 'low',
-          dynatraceCapability: 'Synthetic Monitoring'
-        },
-        {
-          productArea: 'File Storage',
-          ticketCount: 25,
-          usageScore: 45,
-          usageChange: -35,
-          riskLevel: 'critical',
-          dynatraceCapability: 'Infrastructure Monitoring'
-        }
-      ]
+      // Import apiService
+      const { apiService } = await import('../../services/api')
       
-      setData(mockData)
+      // Fetch real data from API
+      const response = await apiService.getUsageCorrelation(organization)
+      
+      // Transform API data to component format
+      const transformedData: CorrelationData[] = response.correlations?.map((item: any) => ({
+        productArea: item.productArea,
+        ticketCount: item.ticketCount,
+        usageScore: Math.round((item.currentUsage / item.previousUsage) * 100) || 0,
+        usageChange: item.usageDropPercentage * -1, // Convert drop to change
+        riskLevel: item.riskLevel?.toLowerCase() || 'low',
+        dynatraceCapability: item.dynatraceCapability || 'Unknown'
+      })) || []
+      
+      setData(transformedData)
     } catch (err) {
+      console.error('Error fetching correlation data:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch correlation data')
     } finally {
       setLoading(false)

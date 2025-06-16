@@ -73,66 +73,57 @@ const ExecutiveSummary: React.FC<ExecutiveSummaryProps> = ({ organization }) => 
     setError(null)
     
     try {
-      // Mock data for now - replace with actual API call
-      const mockData: ExecutiveSummaryData = {
-        totalProductAreas: 8,
-        totalTickets: 186,
-        criticalIssues: 14,
-        averageUsageScore: 76,
-        technicalDebtScore: 68,
-        riskDistribution: {
-          good: 2,
-          moderate: 3,
-          high: 2,
-          critical: 1
+      // Import apiService
+      const { apiService } = await import('../../services/api')
+      
+      // Fetch real data from API
+      const [executiveSummary, ticketBreakdown, technicalDebt] = await Promise.all([
+        apiService.getExecutiveSummary(organization),
+        apiService.getTicketBreakdown(organization),
+        apiService.getTechnicalDebtAnalysis(organization)
+      ])
+
+      // Transform API data to component format
+      const transformedData: ExecutiveSummaryData = {
+        totalProductAreas: executiveSummary.totalProductAreas || ticketBreakdown.breakdown?.length || 0,
+        totalTickets: executiveSummary.totalTickets || ticketBreakdown.summary?.totalTickets || 0,
+        criticalIssues: executiveSummary.criticalIssues || ticketBreakdown.summary?.severityTotals?.CRITICAL || 0,
+        averageUsageScore: executiveSummary.averageUsageScore || 75,
+        technicalDebtScore: executiveSummary.technicalDebtScore || 
+          (technicalDebt.length > 0 ? technicalDebt.reduce((sum: number, item: any) => sum + item.debtScore, 0) / technicalDebt.length : 0),
+        riskDistribution: executiveSummary.riskDistribution || {
+          good: technicalDebt.filter((item: any) => item.category === 'Good').length,
+          moderate: technicalDebt.filter((item: any) => item.category === 'Moderate Risk').length,
+          high: technicalDebt.filter((item: any) => item.category === 'High Risk').length,
+          critical: technicalDebt.filter((item: any) => item.category === 'Critical').length
         },
-        topIssues: [
-          { productArea: 'Reporting', issueCount: 45, riskLevel: 'Critical', impact: 'high' },
-          { productArea: 'File Storage', issueCount: 25, riskLevel: 'High Risk', impact: 'high' },
-          { productArea: 'User Management', issueCount: 45, riskLevel: 'High Risk', impact: 'medium' },
-          { productArea: 'Authentication', issueCount: 40, riskLevel: 'Moderate Risk', impact: 'medium' }
-        ],
-        keyInsights: [
-          'Reporting module shows critical technical debt with 95/100 debt score',
-          'File Storage experiencing 43.8% usage drop - immediate attention required',
-          'Authentication module has high ticket volume but stable usage patterns',
-          'Payment Processing maintains good health with lowest debt score (45/100)'
-        ],
-        recommendations: [
-          {
-            priority: 'urgent',
-            action: 'Refactor Reporting Engine',
-            impact: 'Reduce critical tickets by 60%, improve system stability',
-            effort: 'high'
-          },
-          {
-            priority: 'urgent',
-            action: 'Migrate File Storage to Cloud Solution',
-            impact: 'Eliminate storage-related incidents, improve performance',
+        topIssues: ticketBreakdown.breakdown?.slice(0, 4).map((area: any) => ({
+          productArea: area.productArea,
+          issueCount: area.totalTickets,
+          riskLevel: area.totalTickets > 40 ? 'Critical' : area.totalTickets > 30 ? 'High Risk' : 'Moderate Risk',
+          impact: area.totalTickets > 40 ? 'high' : 'medium'
+        })) || [],
+        keyInsights: technicalDebt.slice(0, 4).map((item: any) => 
+          `${item.productArea} shows ${item.category.toLowerCase()} with ${item.debtScore}/100 debt score`
+        ) || [],
+        recommendations: technicalDebt.flatMap((item: any) => 
+          item.recommendations?.slice(0, 2).map((rec: string) => ({
+            priority: item.category === 'Critical' ? 'urgent' : item.category === 'High Risk' ? 'high' : 'medium',
+            action: rec,
+            impact: `Improve ${item.productArea} stability and performance`,
             effort: 'medium'
-          },
-          {
-            priority: 'high',
-            action: 'Optimize Authentication Flow',
-            impact: 'Reduce authentication-related tickets by 30%',
-            effort: 'medium'
-          },
-          {
-            priority: 'medium',
-            action: 'Implement Proactive Monitoring',
-            impact: 'Early detection of issues, reduce MTTR by 40%',
-            effort: 'low'
-          }
-        ],
+          })) || []
+        ).slice(0, 4) || [],
         trends: {
-          ticketTrend: 12.5,
-          usageTrend: -8.2,
-          debtTrend: 15.3
+          ticketTrend: 0, // Would need historical data
+          usageTrend: 0,  // Would need historical data
+          debtTrend: 0    // Would need historical data
         }
       }
       
-      setData(mockData)
+      setData(transformedData)
     } catch (err) {
+      console.error('Error fetching executive summary:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch executive summary')
     } finally {
       setLoading(false)

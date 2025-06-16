@@ -70,68 +70,32 @@ const TechnicalDebtDashboard: React.FC<TechnicalDebtDashboardProps> = ({ organiz
     setError(null)
     
     try {
-      // Mock data for now - replace with actual API call
-      const mockData: TechnicalDebtData[] = [
-        {
-          productArea: 'Authentication',
-          debtScore: 75,
-          category: 'Moderate Risk',
-          ticketCounts: { CRITICAL: 5, SEVERE: 12, MODERATE: 8, LOW: 15 },
-          usageMetrics: { currentUsage: 85, previousUsage: 90, usageDropPercentage: 5.6, isZeroUsage: false },
-          recommendations: [
-            'Review authentication flow complexity',
-            'Update deprecated authentication libraries',
-            'Implement better error handling for auth failures'
-          ],
-          isKeyModule: true,
-          trend: [65, 70, 72, 75, 73, 75]
-        },
-        {
-          productArea: 'Payment Processing',
-          debtScore: 45,
-          category: 'Good',
-          ticketCounts: { CRITICAL: 1, SEVERE: 3, MODERATE: 8, LOW: 12 },
-          usageMetrics: { currentUsage: 92, previousUsage: 89, usageDropPercentage: -3.4, isZeroUsage: false },
-          recommendations: [
-            'Continue current maintenance practices',
-            'Monitor for PCI compliance updates'
-          ],
-          isKeyModule: true,
-          trend: [50, 48, 46, 45, 44, 45]
-        },
-        {
-          productArea: 'Reporting',
-          debtScore: 95,
-          category: 'Critical',
-          ticketCounts: { CRITICAL: 8, SEVERE: 15, MODERATE: 12, LOW: 10 },
-          usageMetrics: { currentUsage: 65, previousUsage: 85, usageDropPercentage: 23.5, isZeroUsage: false },
-          recommendations: [
-            'URGENT: Refactor reporting engine',
-            'Optimize database queries',
-            'Implement caching layer',
-            'Consider microservices architecture'
-          ],
-          isKeyModule: false,
-          trend: [80, 85, 88, 92, 94, 95]
-        },
-        {
-          productArea: 'File Storage',
-          debtScore: 88,
-          category: 'High Risk',
-          ticketCounts: { CRITICAL: 6, SEVERE: 8, MODERATE: 7, LOW: 4 },
-          usageMetrics: { currentUsage: 45, previousUsage: 80, usageDropPercentage: 43.8, isZeroUsage: false },
-          recommendations: [
-            'Migrate to cloud storage solution',
-            'Fix memory leaks in file handling',
-            'Implement proper file cleanup processes'
-          ],
-          isKeyModule: false,
-          trend: [70, 75, 80, 85, 87, 88]
-        }
-      ]
+      // Import apiService
+      const { apiService } = await import('../../services/api')
       
-      setData(mockData)
+      // Fetch real data from API
+      const response = await apiService.getTechnicalDebtAnalysis(organization)
+      
+      // Transform API data to component format
+      const transformedData: TechnicalDebtData[] = response.map((item: any) => ({
+        productArea: item.productArea,
+        debtScore: item.debtScore,
+        category: item.category,
+        ticketCounts: item.ticketCounts || { CRITICAL: 0, SEVERE: 0, MODERATE: 0, LOW: 0 },
+        usageMetrics: item.usageMetrics || { 
+          currentUsage: 0, 
+          previousUsage: 0, 
+          usageDropPercentage: 0, 
+          isZeroUsage: true 
+        },
+        recommendations: item.recommendations || [],
+        isKeyModule: item.isKeyModule || false,
+        trend: [item.debtScore] // Single point trend for now, would need historical data for full trend
+      }))
+      
+      setData(transformedData)
     } catch (err) {
+      console.error('Error fetching technical debt data:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch technical debt data')
     } finally {
       setLoading(false)

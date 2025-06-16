@@ -31,8 +31,18 @@ const Analytics: React.FC = () => {
 
       try {
         setIsLoadingAnalytics(true)
-        const data = await apiService.getAnalyticsData(state.selectedOrganization.name)
-        setAnalyticsData(data)
+        // Load all analytics data needed for the dashboard
+        const [ticketBreakdown, technicalDebt, executiveSummary] = await Promise.all([
+          apiService.getTicketBreakdown(state.selectedOrganization.name).catch(() => null),
+          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.name).catch(() => null),
+          apiService.getExecutiveSummary(state.selectedOrganization.name).catch(() => null)
+        ])
+        
+        setAnalyticsData({
+          ticketBreakdown,
+          technicalDebt,
+          executiveSummary
+        })
       } catch (error) {
         console.error('Failed to load analytics data:', error)
         setAnalyticsData(null)

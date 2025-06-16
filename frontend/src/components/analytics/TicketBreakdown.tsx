@@ -55,17 +55,30 @@ const TicketBreakdown: React.FC<TicketBreakdownProps> = ({ organization, onDrill
     setError(null)
     
     try {
-      // Mock data for now - replace with actual API call
-      const mockData: TicketData[] = [
-        { productArea: 'Authentication', critical: 5, severe: 12, moderate: 8, low: 15, total: 40 },
-        { productArea: 'Payment Processing', critical: 8, severe: 6, moderate: 10, low: 12, total: 36 },
-        { productArea: 'User Management', critical: 2, severe: 8, moderate: 15, low: 20, total: 45 },
-        { productArea: 'Reporting', critical: 1, severe: 4, moderate: 12, low: 18, total: 35 },
-        { productArea: 'API Gateway', critical: 6, severe: 9, moderate: 7, low: 8, total: 30 }
-      ]
+      // Import apiService
+      const { apiService } = await import('../../services/api')
       
-      setData(mockData)
+      // Calculate date range
+      const endDate = new Date()
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - parseInt(dateRange))
+      
+      // Fetch real data from API
+      const response = await apiService.getTicketBreakdown(organization, startDate, endDate)
+      
+      // Transform API data to component format
+      const transformedData: TicketData[] = response.breakdown?.map((area: any) => ({
+        productArea: area.productArea,
+        critical: area.severityCounts?.CRITICAL || 0,
+        severe: area.severityCounts?.SEVERE || 0,
+        moderate: area.severityCounts?.MODERATE || 0,
+        low: area.severityCounts?.LOW || 0,
+        total: area.totalTickets || 0
+      })) || []
+      
+      setData(transformedData)
     } catch (err) {
+      console.error('Error fetching ticket data:', err)
       setError(err instanceof Error ? err.message : 'Failed to fetch ticket data')
     } finally {
       setLoading(false)

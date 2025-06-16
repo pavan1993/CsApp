@@ -688,6 +688,73 @@ class ApiService {
       throw error;
     }
   }
+
+  async getExecutiveSummary(organization: string) {
+    console.log('🔄 Fetching executive summary for organization:', organization);
+    try {
+      const result = await this.get(`/analytics/executive-summary`, { organization });
+      console.log('✅ Executive summary data:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error fetching executive summary:', error);
+      throw error;
+    }
+  }
+
+  async getTicketBreakdown(organization: string, startDate?: Date, endDate?: Date) {
+    console.log('🔄 Fetching ticket breakdown for organization:', organization);
+    try {
+      const params: any = { organization };
+      if (startDate) params.startDate = startDate.toISOString();
+      if (endDate) params.endDate = endDate.toISOString();
+
+      const result = await this.get(`/analytics/tickets/breakdown`, params);
+      console.log('✅ Ticket breakdown data:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error fetching ticket breakdown:', error);
+      throw error;
+    }
+  }
+
+  async getTechnicalDebtAnalysis(organization: string, productArea?: string) {
+    console.log('🔄 Fetching technical debt analysis for organization:', organization);
+    try {
+      const params: any = { organization };
+      if (productArea) params.productArea = productArea;
+
+      const result = await this.get(`/analytics/technical-debt`, params);
+      console.log('✅ Technical debt data:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error fetching technical debt analysis:', error);
+      throw error;
+    }
+  }
+
+  async getUsageCorrelation(organization: string) {
+    console.log('🔄 Fetching usage correlation for organization:', organization);
+    try {
+      const result = await this.get(`/analytics/usage-correlation/${encodeURIComponent(organization)}`);
+      console.log('✅ Usage correlation data:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error fetching usage correlation:', error);
+      throw error;
+    }
+  }
+
+  async getTrendAnalysis(organization: string, months: number = 6) {
+    console.log('🔄 Fetching trend analysis for organization:', organization);
+    try {
+      const result = await this.get(`/analytics/trends/${encodeURIComponent(organization)}`, { months });
+      console.log('✅ Trend analysis data:', result);
+      return result;
+    } catch (error) {
+      console.error('❌ Error fetching trend analysis:', error);
+      throw error;
+    }
+  }
 }
 
 // Export singleton instance
