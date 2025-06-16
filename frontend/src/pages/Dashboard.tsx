@@ -1,45 +1,98 @@
-import React from 'react'
-import { Users, TrendingUp, DollarSign, Target } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Users, TrendingUp, AlertTriangle, Target } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import LoadingSpinner from '../components/LoadingSpinner'
+import { apiService } from '../services/api'
+
+interface DashboardStats {
+  totalOrganizations: number
+  totalProductAreas: number
+  totalTickets: number
+  criticalTickets: number
+  averageTechnicalDebtScore: number
+  highRiskAreas: number
+}
 
 const Dashboard: React.FC = () => {
   const { state } = useAppContext()
+  const [dashboardData, setDashboardData] = useState<DashboardStats | null>(null)
+  const [isLoadingData, setIsLoadingData] = useState(true)
 
-  if (state.isLoading) {
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (!state.selectedOrganization) {
+        setIsLoadingData(false)
+        return
+      }
+
+      try {
+        setIsLoadingData(true)
+        
+        // Fetch analytics data for the selected organization
+        const analyticsData = await apiService.get(`/analytics/executive-summary/${state.selectedOrganization.id}`)
+        
+        setDashboardData({
+          totalOrganizations: state.organizations.length,
+          totalProductAreas: analyticsData.totalProductAreas || 0,
+          totalTickets: analyticsData.totalTickets || 0,
+          criticalTickets: analyticsData.criticalIssues || 0,
+          averageTechnicalDebtScore: analyticsData.technicalDebtScore || 0,
+          highRiskAreas: analyticsData.riskDistribution?.high + analyticsData.riskDistribution?.critical || 0
+        })
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error)
+        // Set default values on error
+        setDashboardData({
+          totalOrganizations: state.organizations.length,
+          totalProductAreas: 0,
+          totalTickets: 0,
+          criticalTickets: 0,
+          averageTechnicalDebtScore: 0,
+          highRiskAreas: 0
+        })
+      } finally {
+        setIsLoadingData(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [state.selectedOrganization, state.organizations.length, state.lastRefresh])
+
+  if (state.isLoading || isLoadingData) {
     return <LoadingSpinner text="Loading dashboard..." />
   }
 
-  const stats = [
+  const stats = dashboardData ? [
     {
-      name: 'Total Customers',
-      value: '2,651',
-      change: '+4.75%',
-      changeType: 'positive',
+      name: 'Organizations',
+      value: dashboardData.totalOrganizations.toString(),
+      change: state.selectedOrganization ? `Selected: ${state.selectedOrganization.name}` : 'No selection',
+      changeType: 'neutral' as const,
       icon: Users,
     },
     {
-      name: 'Customer Health Score',
-      value: '8.2/10',
-      change: '+0.3',
-      changeType: 'positive',
+      name: 'Product Areas',
+      value: dashboardData.totalProductAreas.toString(),
+      change: state.selectedOrganization ? 'Current org' : 'Select org',
+      changeType: 'neutral' as const,
+      icon: Target,
+    },
+    {
+      name: 'Total Tickets',
+      value: dashboardData.totalTickets.toLocaleString(),
+      change: `${dashboardData.criticalTickets} critical`,
+      changeType: dashboardData.criticalTickets > 0 ? 'negative' as const : 'positive' as const,
       icon: TrendingUp,
     },
     {
-      name: 'Monthly Revenue',
-      value: '$405,091',
-      change: '+54.02%',
-      changeType: 'positive',
-      icon: DollarSign,
+      name: 'Technical Debt Score',
+      value: dashboardData.averageTechnicalDebtScore.toFixed(1),
+      change: `${dashboardData.highRiskAreas} high risk areas`,
+      changeType: dashboardData.averageTechnicalDebtScore > 7 ? 'negative' as const : 
+                 dashboardData.averageTechnicalDebtScore > 4 ? 'neutral' as const : 'positive' as const,
+      icon: AlertTriangle,
     },
-    {
-      name: 'Churn Rate',
-      value: '2.1%',
-      change: '-0.5%',
-      changeType: 'positive',
-      icon: Target,
-    },
-  ]
+  ] : []
 
   return (
     <div className="px-4 py-6 sm:px-0">
@@ -86,7 +139,9 @@ const Dashboard: React.FC = () => {
                     className={`ml-2 flex items-baseline text-sm font-semibold ${
                       item.changeType === 'positive'
                         ? 'text-green-600'
-                        : 'text-red-600'
+                        : item.changeType === 'negative'
+                        ? 'text-red-600'
+                        : 'text-gray-500'
                     }`}
                   >
                     {item.change}
@@ -96,6 +151,41 @@ const Dashboard: React.FC = () => {
             )
           })}
         </div>
+
+        {!state.selectedOrganization && (
+          <div className="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-yellow-800">
+                  No Organization Selected
+                </h3>
+                <div className="mt-2 text-sm text-yellow-700">
+                  <p>Please select an organization to view detailed analytics and technical debt data.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {state.selectedOrganization && !state.dataStatus.ticketsUploaded && (
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="ml-3">
+                <h3 className="text-sm font-medium text-blue-800">
+                  Get Started
+                </h3>
+                <div className="mt-2 text-sm text-blue-700">
+                  <p>Upload your support tickets and usage data to start analyzing technical debt.</p>
+                  <p className="mt-1">
+                    <a href="/import" className="font-medium underline hover:text-blue-600">
+                      Go to Import →
+                    </a>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
