@@ -42,11 +42,11 @@ const Dashboard: React.FC = () => {
         
         // Fetch multiple analytics endpoints to build dashboard data with cache disabled
         const [ticketBreakdown, technicalDebtData] = await Promise.all([
-          apiService.get(`/analytics/tickets/breakdown`, { organization: state.selectedOrganization.name }, { cache: false }).catch((error) => {
+          apiService.getTicketBreakdown(state.selectedOrganization.name).catch((error) => {
             console.error('Failed to fetch ticket breakdown:', error)
             return null
           }),
-          apiService.get(`/analytics/technical-debt`, { organization: state.selectedOrganization.name }, { cache: false }).catch((error) => {
+          apiService.getTechnicalDebtAnalysis(state.selectedOrganization.name).catch((error) => {
             console.error('Failed to fetch technical debt data:', error)
             return null
           })
@@ -60,39 +60,68 @@ const Dashboard: React.FC = () => {
         let criticalTickets = 0
         let totalProductAreas = 0
         
-        if (ticketBreakdown && ticketBreakdown.breakdown && Array.isArray(ticketBreakdown.breakdown) && ticketBreakdown.breakdown.length > 0) {
-          // Use breakdown data if available
-          totalProductAreas = ticketBreakdown.breakdown.length
-          ticketBreakdown.breakdown.forEach(item => {
-            totalTickets += (item.severityCounts?.CRITICAL || 0) + 
-                           (item.severityCounts?.SEVERE || 0) + 
-                           (item.severityCounts?.MODERATE || 0) + 
-                           (item.severityCounts?.LOW || 0)
-            criticalTickets += (item.severityCounts?.CRITICAL || 0)
-          })
-        } else if (ticketBreakdown && ticketBreakdown.summary) {
-          // Use summary data if breakdown array is empty or doesn't exist
-          console.log('📊 Using summary data:', ticketBreakdown.summary)
-          totalTickets = ticketBreakdown.summary.totalTickets || 
-                        ticketBreakdown.summary.total || 0
-          criticalTickets = ticketBreakdown.summary.criticalTickets || 
-                           ticketBreakdown.summary.critical || 0
-          totalProductAreas = ticketBreakdown.summary.totalProductAreas || 
-                             ticketBreakdown.summary.productAreas || 0
+        console.log('📊 Processing ticket breakdown structure:', ticketBreakdown)
+        
+        if (ticketBreakdown) {
+          // First try to get data from breakdown array
+          if (ticketBreakdown.breakdown && Array.isArray(ticketBreakdown.breakdown) && ticketBreakdown.breakdown.length > 0) {
+            console.log('📊 Using breakdown array data')
+            totalProductAreas = ticketBreakdown.breakdown.length
+            ticketBreakdown.breakdown.forEach((item: any) => {
+              if (item.severityCounts) {
+                totalTickets += (item.severityCounts.CRITICAL || 0) + 
+                               (item.severityCounts.SEVERE || 0) + 
+                               (item.severityCounts.MODERATE || 0) + 
+                               (item.severityCounts.LOW || 0)
+                criticalTickets += (item.severityCounts.CRITICAL || 0)
+              }
+              if (item.totalTickets) {
+                totalTickets += item.totalTickets
+              }
+            })
+          }
           
-          // Try to extract from severity counts if available
-          if (ticketBreakdown.summary.severityCounts) {
-            const counts = ticketBreakdown.summary.severityCounts
-            totalTickets = (counts.CRITICAL || 0) + (counts.SEVERE || 0) + 
-                          (counts.MODERATE || 0) + (counts.LOW || 0)
-            criticalTickets = counts.CRITICAL || 0
-          } else if (ticketBreakdown.summary.severityTotals) {
-            const totals = ticketBreakdown.summary.severityTotals
-            totalTickets = (totals.CRITICAL || 0) + (totals.SEVERE || 0) + 
-                          (totals.MODERATE || 0) + (totals.LOW || 0)
-            criticalTickets = totals.CRITICAL || 0
+          // Then try to get data from summary
+          if (ticketBreakdown.summary) {
+            console.log('📊 Processing summary data:', ticketBreakdown.summary)
+            
+            // Use summary totals if breakdown didn't provide data
+            if (totalTickets === 0 && ticketBreakdown.summary.totalTickets) {
+              totalTickets = ticketBreakdown.summary.totalTickets
+            }
+            if (criticalTickets === 0 && ticketBreakdown.summary.criticalTickets) {
+              criticalTickets = ticketBreakdown.summary.criticalTickets
+            }
+            if (totalProductAreas === 0 && ticketBreakdown.summary.totalProductAreas) {
+              totalProductAreas = ticketBreakdown.summary.totalProductAreas
+            }
+            
+            // Try severity counts in summary
+            if (ticketBreakdown.summary.severityCounts) {
+              const counts = ticketBreakdown.summary.severityCounts
+              if (totalTickets === 0) {
+                totalTickets = (counts.CRITICAL || 0) + (counts.SEVERE || 0) + 
+                              (counts.MODERATE || 0) + (counts.LOW || 0)
+              }
+              if (criticalTickets === 0) {
+                criticalTickets = counts.CRITICAL || 0
+              }
+            }
+          }
+          
+          // Fallback: try direct properties on the main object
+          if (totalTickets === 0 && ticketBreakdown.totalTickets) {
+            totalTickets = ticketBreakdown.totalTickets
+          }
+          if (criticalTickets === 0 && ticketBreakdown.criticalTickets) {
+            criticalTickets = ticketBreakdown.criticalTickets
+          }
+          if (totalProductAreas === 0 && ticketBreakdown.totalProductAreas) {
+            totalProductAreas = ticketBreakdown.totalProductAreas
           }
         }
+        
+        console.log('📊 Final calculated values:', { totalTickets, criticalTickets, totalProductAreas })
         
         // Calculate technical debt metrics
         let averageTechnicalDebtScore = 0
