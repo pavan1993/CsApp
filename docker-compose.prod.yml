@@ -27,8 +27,8 @@ services:
   # Backend API
   backend:
     build:
-      context: ./backend
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
       target: runner
     container_name: customer-success-backend-prod
     environment:

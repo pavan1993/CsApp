@@ -23,8 +23,8 @@ services:
   # Backend API
   backend:
     build:
-      context: ./backend
-      dockerfile: ../Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: customer-success-backend
     environment:
       NODE_ENV: development
