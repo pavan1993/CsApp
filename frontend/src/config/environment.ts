@@ -19,8 +19,8 @@ export const config = {
         return 'http://localhost:5000/api';
       }
       
-      // For public IP or domain, connect directly to backend port 5000
-      // This assumes the backend is running on the same host on port 5000
+      // For public IP or domain, use the proxy path (assumes reverse proxy setup)
+      // If no reverse proxy, backend should be accessible on same host:5000
       return `${protocol}//${hostname}:5000/api`;
     }
     
