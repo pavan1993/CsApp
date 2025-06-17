@@ -1,19 +1,21 @@
-# Multi-stage build for Node.js backend - use debian-based image for better Prisma compatibility
-FROM node:18-slim AS base
+# Use Alpine Linux for smaller image size and consistent musl libc
+FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apt-get update && apt-get install -y curl openssl && rm -rf /var/lib/apt/lists/*
+# Install necessary packages for Prisma and build tools
+RUN apk add --no-cache libc6-compat openssl curl
 WORKDIR /app
 
 # Copy package files from backend directory
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
 
-# Install all dependencies (including dev dependencies for development)
+# Install dependencies
 RUN npm ci --include=dev && npm cache clean --force
 
-# Generate Prisma client with explicit platform for container
+# Generate Prisma client for Alpine Linux (musl)
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
 RUN npx prisma generate
 
 # Build stage
@@ -21,23 +23,23 @@ FROM base AS builder
 WORKDIR /app
 
 # Install build dependencies
-RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache libc6-compat openssl
 
-# Copy package files and prisma schema
+# Copy package files and dependencies
 COPY backend/package*.json ./
 COPY backend/prisma ./prisma/
-
-# Install all dependencies (including dev dependencies)
-RUN npm ci --include=dev
+COPY --from=deps /app/node_modules ./node_modules
 
 # Copy source code from backend directory
 COPY backend/ .
-COPY --from=deps /app/node_modules ./node_modules
 
-# Regenerate Prisma client in the build environment with correct binary targets
+# Set Prisma binary target for Alpine Linux
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+
+# Generate Prisma client again in build stage
 RUN npx prisma generate
 
-# Build the application (if build script exists, otherwise skip)
+# Build the application
 RUN npm run build || echo "No build script found, using source files directly"
 
 # Production stage
@@ -45,15 +47,18 @@ FROM base AS runner
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apt-get update && apt-get install -y curl openssl && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl openssl
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-# Copy application files
+# Set environment variables
+ENV NODE_ENV=production
+ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+
+# Copy built application
 COPY --from=builder --chown=nodejs:nodejs /app ./
-COPY --from=deps --chown=nodejs:nodejs /app/node_modules ./node_modules
 
 # Create uploads directory
 RUN mkdir -p uploads && chown nodejs:nodejs uploads
@@ -69,4 +74,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
-CMD ["sh", "-c", "echo 'Debug: Starting container...' && pwd && ls -la && npm run dev"]
+CMD ["npm", "run", "start"]

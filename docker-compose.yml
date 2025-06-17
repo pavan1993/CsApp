@@ -34,7 +34,7 @@ services:
       PORT: 3001
       JWT_SECRET: dev-jwt-secret-change-in-production
       CORS_ORIGIN: http://localhost:3000
-      PRISMA_CLI_BINARY_TARGETS: native
+      PRISMA_CLI_BINARY_TARGETS: linux-musl-openssl-3.0.x
     ports:
       - "3001:3001"
     volumes:
@@ -46,7 +46,7 @@ services:
         condition: service_healthy
     networks:
       - customer-success-network
-    command: ["sh", "-c", "rm -rf node_modules/.prisma && npx prisma generate && npm run dev"]
+    command: ["sh", "-c", "npx prisma generate && npm run dev"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
       interval: 30s
