@@ -9,13 +9,22 @@ export const config = {
       return finalUrl;
     }
     
-    // In production, use relative path to connect through nginx proxy
-    if ((import.meta as any).env?.PROD || window.location.hostname !== 'localhost') {
+    // Check if we're running in a browser and can detect the current host
+    if (typeof window !== 'undefined') {
+      const hostname = window.location.hostname;
+      
+      // For localhost development, use direct backend port
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return 'http://localhost:5000/api';
+      }
+      
+      // For production deployment (public IP or domain), use nginx proxy
+      // This assumes nginx is configured to proxy /api requests to the backend
       return '/api';
     }
     
-    // For local development, use localhost:5000
-    return 'http://localhost:5000/api';
+    // Fallback for server-side rendering or build time
+    return '/api';
   })(),
   apiTimeout: parseInt((import.meta as any).env?.VITE_API_TIMEOUT || '10000'),
   
