@@ -20,8 +20,11 @@ RUN npx prisma generate
 FROM base AS builder
 WORKDIR /app
 
-# Copy package files and install all dependencies (including dev dependencies)
+# Copy package files and prisma schema
 COPY backend/package*.json ./
+COPY backend/prisma ./prisma/
+
+# Install all dependencies (including dev dependencies)
 RUN npm ci --include=dev
 
 # Copy source code from backend directory
