@@ -18,17 +18,9 @@ export const config = {
       
       console.log('🌐 Detected hostname:', hostname, 'protocol:', protocol, 'port:', port);
       
-      // For localhost development, use direct backend port
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        const apiUrl = 'http://localhost:5000/api';
-        console.log('🏠 Using localhost backend:', apiUrl);
-        return apiUrl;
-      }
-      
-      // For public IP or domain, connect directly to backend port 5000
-      // This assumes the backend is running on the same host on port 5000
+      // Always use the same hostname as the frontend, but connect to backend port 5000
       const apiUrl = `${protocol}//${hostname}:5000/api`;
-      console.log('🌍 Using public IP backend:', apiUrl);
+      console.log(`🌐 Using backend on same host (${hostname}):`, apiUrl);
       return apiUrl;
     }
     
