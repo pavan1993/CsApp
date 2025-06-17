@@ -66,6 +66,75 @@ npm run build:frontend
 npm run build:backend
 ```
 
+## Docker Troubleshooting
+
+### Common Issues
+
+**Services won't start:**
+```bash
+# Check Docker daemon is running
+docker --version
+docker-compose --version
+
+# Check for port conflicts
+docker-compose ps
+netstat -tulpn | grep :3000
+netstat -tulpn | grep :5000
+netstat -tulpn | grep :5432
+```
+
+**Database connection issues:**
+```bash
+# Check PostgreSQL health
+docker-compose exec postgres pg_isready -U postgres
+
+# Connect to database directly
+docker-compose exec postgres psql -U postgres -d customer_success_db
+
+# Reset database (WARNING: deletes all data)
+docker-compose down -v
+docker-compose up -d postgres
+docker-compose exec backend npm run db:migrate
+```
+
+**Frontend build issues:**
+```bash
+# Clear node_modules and rebuild
+docker-compose down
+docker-compose build --no-cache frontend
+docker-compose up -d
+```
+
+**Backend API issues:**
+```bash
+# Check backend logs
+docker-compose logs backend
+
+# Restart backend service
+docker-compose restart backend
+
+# Check environment variables
+docker-compose exec backend env | grep -E "(DATABASE_URL|NODE_ENV|PORT)"
+```
+
+**Performance issues:**
+```bash
+# Check resource usage
+docker stats
+
+# Increase Docker memory/CPU limits in Docker Desktop
+# Clean up unused containers/images
+docker system prune -a
+```
+
+### Development Tips
+
+- Use `docker-compose up` (without -d) for first runs to see startup logs
+- Backend has hot reloading enabled in development mode
+- Frontend changes require container rebuild: `docker-compose build frontend`
+- Database data persists in Docker volumes between restarts
+- Use `docker-compose down -v` only when you want to reset all data
+
 ## Features
 
 - Customer analytics dashboard
