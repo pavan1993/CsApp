@@ -2,7 +2,7 @@ import express from 'express';
 import multer from 'multer';
 import csv from 'csv-parser';
 import { Readable } from 'stream';
-import { prisma } from '../server';
+import { connectDatabase } from '../config/database';
 import { TicketSeverity } from '@prisma/client';
 
 const router = express.Router();
@@ -274,6 +274,7 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
     }
 
     // Insert valid tickets into database
+    const prisma = connectDatabase();
     const insertedTickets = [];
     for (const row of results) {
       try {
