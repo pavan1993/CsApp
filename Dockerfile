@@ -53,11 +53,11 @@ RUN mkdir -p uploads && chown nodejs:nodejs uploads
 USER nodejs
 
 # Expose port
-EXPOSE 5000
+EXPOSE 3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:5000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
+  CMD node -e "require('http').get('http://localhost:3001/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start the application
 CMD ["sh", "-c", "echo 'Debug: Starting container...' && pwd && ls -la && npm run dev"]
