@@ -10,6 +10,7 @@
     "build:backend": "cd backend && npm run build",
     "build:prod": "cd backend && npm run build:prod && cd ../frontend && npm run build:prod",
     "build": "npm run build:backend && npm run build:frontend",
+    "prebuild": "npm run db:generate",
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "setup:frontend": "cd frontend && npm install",
     "setup:backend": "cd backend && npm install && cp .env.example .env",
