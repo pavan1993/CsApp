@@ -29,12 +29,14 @@ services:
         - linux/arm64
     container_name: customer-success-backend
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/customer_success_db?schema=public
       PORT: 5000
       JWT_SECRET: dev-jwt-secret-change-in-production
       CORS_ORIGIN: "*"
       PRISMA_CLI_BINARY_TARGETS: linux-musl-openssl-3.0.x
+    ports:
+      - "5000:5000"
     expose:
       - "5000"
     volumes:
@@ -61,7 +63,9 @@ services:
       dockerfile: Dockerfile.dev
     container_name: customer-success-frontend
     environment:
-      NODE_ENV: production
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
     expose:
       - "3000"
     depends_on:
