@@ -44,7 +44,7 @@ const Import: React.FC = () => {
     const stepData = {
       [`${activeTab}Uploaded`]: true,
       [`${activeTab}UploadDate`]: new Date().toISOString(),
-      [`${activeTab}RecordCount`]: result.validation?.validRows || result.data?.length || 0
+      [`${activeTab}RecordCount`]: result.validation?.validRows || result.recordCount || result.data?.length || 0
     }
     
     updateStepData('import', stepData)
@@ -55,14 +55,14 @@ const Import: React.FC = () => {
       payload: {
         [activeTab === 'tickets' ? 'ticketsUploaded' : 'usageUploaded']: true,
         [activeTab === 'tickets' ? 'lastTicketUpload' : 'lastUsageUpload']: new Date().toISOString(),
-        [activeTab === 'tickets' ? 'ticketCount' : 'usageRecordCount']: result.validation?.validRows || result.data?.length || 0
+        [activeTab === 'tickets' ? 'ticketCount' : 'usageRecordCount']: result.validation?.validRows || result.recordCount || result.data?.length || 0
       }
     })
 
     // Show success notification
     notifications.success(
       'Upload Successful',
-      `${activeTab === 'tickets' ? 'Support tickets' : 'Usage data'} uploaded successfully. ${result.validation?.validRows || result.data?.length || 0} records processed.`,
+      `${activeTab === 'tickets' ? 'Support tickets' : 'Usage data'} uploaded successfully. ${result.validation?.validRows || result.recordCount || result.data?.length || 0} records processed.`,
       {
         action: {
           label: 'Next Step',
