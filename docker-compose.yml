@@ -61,7 +61,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: customer-success-frontend
     environment:
-      VITE_API_URL: http://localhost:5000/api
+      # Remove VITE_API_URL to use relative paths in production
+      NODE_ENV: production
     ports:
       - "3000:3000"
     depends_on:
@@ -73,6 +74,25 @@ services:
       - /app/node_modules
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Nginx reverse proxy
+  nginx:
+    image: nginx:alpine
+    container_name: customer-success-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - customer-success-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
       interval: 30s
       timeout: 10s
       retries: 3
