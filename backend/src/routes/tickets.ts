@@ -206,8 +206,6 @@ router.post('/upload', upload.single('file'), handleMulterError, async (req: exp
     await new Promise<void>((resolve, reject) => {
       stream
         .pipe(csv({
-          skipEmptyLines: true,
-          skipLinesWithError: false,
           strict: false
         }))
         .on('headers', (headers: string[]) => {
