@@ -21,11 +21,18 @@ A full-stack Customer Success Analytics application built with React, Node.js, a
 
 ### Prerequisites
 
+**Option 1: Local Development**
 - Node.js (v18 or higher)
 - PostgreSQL
 - npm or yarn
 
+**Option 2: Docker Development**
+- Docker (v20.10 or higher)
+- Docker Compose (v2.0 or higher)
+
 ### Installation
+
+**Option 1: Local Development**
 
 1. Install all dependencies:
 ```bash
@@ -44,9 +51,38 @@ npm run db:migrate
 npm run db:generate
 ```
 
+**Option 2: Docker Development**
+
+1. Set up environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your configuration (passwords, secrets, etc.)
+```
+
+2. Start all services:
+```bash
+# Start with logs (recommended for first run)
+docker-compose up
+
+# Or start in background
+docker-compose up -d
+```
+
+3. Wait for services to be healthy, then run database setup:
+```bash
+# Check service status
+docker-compose ps
+
+# Run database migrations
+docker-compose exec backend npm run db:migrate
+
+# Generate Prisma client
+docker-compose exec backend npm run db:generate
+```
+
 ### Development
 
-Run frontend and backend in development mode:
+**Local Development:**
 
 ```bash
 # Frontend (runs on http://localhost:3000)
@@ -59,11 +95,103 @@ npm run dev:backend
 npm run db:studio
 ```
 
+**Docker Development:**
+
+```bash
+# Start all services with logs
+docker-compose up
+
+# Start services in background
+docker-compose up -d
+
+# View logs for all services
+docker-compose logs -f
+
+# View logs for specific service
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f postgres
+
+# Stop services
+docker-compose down
+
+# Stop and remove volumes (careful - deletes data!)
+docker-compose down -v
+
+# Rebuild and start (after code changes)
+docker-compose up --build
+
+# Rebuild specific service
+docker-compose build backend
+docker-compose up -d backend
+
+# Execute commands in containers
+docker-compose exec backend npm run db:studio
+docker-compose exec backend npm run db:migrate
+docker-compose exec postgres psql -U postgres -d customer_success_db
+
+# Access container shell
+docker-compose exec backend sh
+docker-compose exec frontend sh
+```
+
+**Service URLs (Development):**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- Database: localhost:5432
+- Redis: localhost:6379
+
 ### Building for Production
+
+**Local Build:**
 
 ```bash
 npm run build:frontend
 npm run build:backend
+```
+
+**Docker Production Deployment:**
+
+1. Set up production environment variables:
+```bash
+cp .env.example .env
+# Configure production values (secure passwords, proper URLs, etc.)
+```
+
+2. Build and deploy:
+```bash
+# Build production images
+docker-compose -f docker-compose.prod.yml build
+
+# Start production environment
+docker-compose -f docker-compose.prod.yml up -d
+
+# Check service health
+docker-compose -f docker-compose.prod.yml ps
+
+# View production logs
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+3. Run database setup (first time only):
+```bash
+docker-compose -f docker-compose.prod.yml exec backend npm run db:migrate
+```
+
+**Production Service URLs:**
+- Frontend: http://localhost (port 80)
+- Backend API: http://localhost:5000
+- HTTPS: https://localhost (port 443, if SSL configured)
+
+**Individual Container Builds:**
+```bash
+# Build individual images
+docker build -t customer-success-frontend ./frontend
+docker build -t customer-success-backend .
+
+# Run individual containers
+docker run -p 3000:80 customer-success-frontend
+docker run -p 5000:5000 customer-success-backend
 ```
 
 ## Docker Troubleshooting
