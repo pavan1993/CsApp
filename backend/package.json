@@ -30,7 +30,7 @@
     "docker:prod": "docker-compose -f docker-compose.prod.yml up --build -d",
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
-    "health": "curl -f http://localhost:5000/api/health || exit 1",
+    "health": "curl -f http://localhost:${PORT:-5000}/api/health || exit 1",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
     "clean": "rm -rf dist",

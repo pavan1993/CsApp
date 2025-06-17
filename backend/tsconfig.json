@@ -24,7 +24,8 @@
     "allowUnreachableCode": false
   },
   "include": [
-    "src/**/*"
+    "src/**/*",
+    "prisma/**/*"
   ],
   "exclude": [
     "node_modules",
