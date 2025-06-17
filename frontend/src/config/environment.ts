@@ -3,11 +3,19 @@ export const config = {
   // API Configuration
   apiUrl: (() => {
     const envUrl = (import.meta as any).env?.VITE_API_URL;
+    const isDev = (import.meta as any).env?.DEV || false;
+    
     if (envUrl) {
       // If VITE_API_URL is set, use it
       const finalUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
       console.log('🔧 Using VITE_API_URL:', finalUrl);
       return finalUrl;
+    }
+    
+    // In development, use the Vite proxy
+    if (isDev) {
+      console.log('🔧 Development mode: Using Vite proxy /api');
+      return '/api';
     }
     
     // Check if we're running in a browser and can detect the current host
@@ -18,7 +26,7 @@ export const config = {
       
       console.log('🌐 Detected hostname:', hostname, 'protocol:', protocol, 'port:', port);
       
-      // Always use the same hostname as the frontend, but connect to backend port 5000
+      // In production, connect directly to backend port 5000
       const apiUrl = `${protocol}//${hostname}:5000/api`;
       console.log(`🌐 Using backend on same host (${hostname}):`, apiUrl);
       return apiUrl;
