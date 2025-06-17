@@ -46,7 +46,7 @@ services:
         condition: service_healthy
     networks:
       - customer-success-network
-    command: ["sh", "-c", "npx prisma generate && npm run dev"]
+    command: ["sh", "-c", "rm -rf node_modules/.prisma && npx prisma generate && npm run dev"]
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
       interval: 30s
