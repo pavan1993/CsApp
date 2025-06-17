@@ -3,12 +3,12 @@ export const config = {
   // API Configuration
   apiUrl: (() => {
     const envUrl = (import.meta as any).env?.VITE_API_URL;
-    if (envUrl && !envUrl.includes(':5000')) {
-      // If VITE_API_URL is set and not pointing to port 5000, use it
+    if (envUrl) {
+      // If VITE_API_URL is set, use it
       return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
     }
-    // Always use port 3001 as default or if env points to wrong port
-    return 'http://localhost:3001/api';
+    // Use port 5000 as default to match backend
+    return 'http://localhost:5000/api';
   })(),
   apiTimeout: parseInt((import.meta as any).env?.VITE_API_TIMEOUT || '10000'),
   
@@ -56,18 +56,18 @@ console.log('Frontend API Configuration:', {
   isDevelopment: config.isDevelopment,
   isProduction: config.isProduction,
   currentOrigin: window.location.origin,
-  expectedBackendPort: 3001,
+  expectedBackendPort: 5000,
   actualConfiguredUrl: config.apiUrl,
   env: (import.meta as any).env || {}
 })
 
 // Warn if configuration seems wrong
-if (config.apiUrl.includes(':5000')) {
-  console.warn('⚠️ WARNING: Frontend is configured to connect to port 5000, but backend runs on port 3001!')
+if (config.apiUrl.includes(':3001')) {
+  console.warn('⚠️ WARNING: Frontend is configured to connect to port 3001, but backend runs on port 5000!')
   console.warn('⚠️ Please check your .env file or environment variables')
   console.warn('⚠️ To fix this, either:')
   console.warn('⚠️   1. Remove VITE_API_URL from your environment')
-  console.warn('⚠️   2. Set VITE_API_URL=http://localhost:3001/api')
+  console.warn('⚠️   2. Set VITE_API_URL=http://localhost:5000/api')
 }
 
 // Log final configuration
