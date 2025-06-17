@@ -56,8 +56,10 @@ npm run db:generate
 1. Set up environment variables:
 ```bash
 cp .env.example .env
-# Edit .env with your configuration (passwords, secrets, etc.)
+# Edit .env with your configuration (the defaults work for development)
 ```
+
+**Important**: The `.env.example` file contains all the necessary environment variables. For development, you can use it as-is, but make sure to change the passwords and secrets for production use.
 
 2. Start all services:
 ```bash
@@ -73,11 +75,12 @@ docker-compose up -d
 # Check service status
 docker-compose ps
 
-# Run database migrations
-docker-compose exec backend npm run db:migrate
+# Generate Prisma client and run migrations
+docker-compose exec backend npx prisma generate
+docker-compose exec backend npx prisma db push
 
-# Generate Prisma client
-docker-compose exec backend npm run db:generate
+# Optional: Seed database with sample data
+docker-compose exec backend npm run seed
 ```
 
 ### Development
@@ -204,11 +207,18 @@ docker run -p 5000:5000 customer-success-backend
 docker --version
 docker-compose --version
 
-# Check for port conflicts
-docker-compose ps
-netstat -tulpn | grep :3000
-netstat -tulpn | grep :5000
-netstat -tulpn | grep :5432
+# Check for port conflicts (ports 3000, 3001, 5432, 6379 must be free)
+# Windows:
+netstat -an | findstr :3000
+netstat -an | findstr :3001
+netstat -an | findstr :5432
+netstat -an | findstr :6379
+
+# Mac/Linux:
+lsof -i :3000
+lsof -i :3001
+lsof -i :5432
+lsof -i :6379
 ```
 
 **Database connection issues:**
@@ -243,6 +253,28 @@ docker-compose restart backend
 
 # Check environment variables
 docker-compose exec backend env | grep -E "(DATABASE_URL|NODE_ENV|PORT)"
+```
+
+**"Cannot connect to backend" errors:**
+```bash
+# Check if backend is running and healthy
+docker-compose logs backend
+
+# Backend should be accessible at http://localhost:3001/api/health
+curl http://localhost:3001/api/health
+
+# If backend fails to start, check database connection
+docker-compose logs postgres
+docker-compose exec postgres pg_isready -U postgres
+```
+
+**Frontend shows "Network Error":**
+```bash
+# Check if VITE_API_URL is correctly set in .env
+docker-compose exec frontend env | grep VITE_API_URL
+
+# Should show: VITE_API_URL=http://localhost:3001/api
+# If not, update your .env file and restart: docker-compose restart frontend
 ```
 
 **Performance issues:**
