@@ -25,9 +25,16 @@ export default defineConfig(({ mode }) => ({
     host: true, // Allow external connections
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
+        configure: (proxy, options) => {
+          proxy.on('error', (err, req, res) => {
+            console.error('❌ Proxy error:', err.message);
+            console.error('❌ Make sure backend is running on port 5000');
+            console.error('❌ Try: cd backend && npm run dev');
+          });
+        },
       },
     },
   },

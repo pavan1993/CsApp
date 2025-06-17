@@ -69,6 +69,7 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`🔗 API URL: http://localhost:${PORT}/api`);
     console.log(`🔗 Frontend should connect to: http://localhost:${PORT}/api`);
+    console.log(`⚠️  If frontend shows port 3001 errors, check your .env file!`);
     console.log(`📋 Available routes:`);
     console.log(`   GET  /api/health`);
     console.log(`   GET  /api/analytics/organizations`);

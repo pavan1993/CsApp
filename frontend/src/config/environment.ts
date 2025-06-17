@@ -4,8 +4,14 @@ export const config = {
   apiUrl: (() => {
     const envUrl = (import.meta as any).env?.VITE_API_URL;
     if (envUrl) {
-      // If VITE_API_URL is set, use it
-      return envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+      // If VITE_API_URL is set, use it but warn if it's port 3001
+      const finalUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+      if (finalUrl.includes(':3001')) {
+        console.warn('⚠️ WARNING: VITE_API_URL is set to port 3001, but backend runs on port 5000!');
+        console.warn('⚠️ This will likely cause connection errors.');
+        console.warn('⚠️ Please update your .env file to use: VITE_API_URL=http://localhost:5000');
+      }
+      return finalUrl;
     }
     // Use port 5000 as default to match backend
     return 'http://localhost:5000/api';
