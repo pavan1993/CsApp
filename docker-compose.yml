@@ -31,12 +31,12 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/customer_success_db?schema=public
-      PORT: 3001
+      PORT: 5000
       JWT_SECRET: dev-jwt-secret-change-in-production
       CORS_ORIGIN: http://localhost:3000
       PRISMA_CLI_BINARY_TARGETS: linux-musl-openssl-3.0.x
     ports:
-      - "3001:3001"
+      - "5000:5000"
     volumes:
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
@@ -48,7 +48,7 @@ services:
       - customer-success-network
     command: ["sh", "-c", "npx prisma generate && npm run dev"]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -61,7 +61,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: customer-success-frontend
     environment:
-      VITE_API_URL: http://localhost:3001/api
+      VITE_API_URL: http://localhost:5000/api
     ports:
       - "3000:3000"
     depends_on:
