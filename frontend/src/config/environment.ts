@@ -6,6 +6,7 @@ export const config = {
     if (envUrl) {
       // If VITE_API_URL is set, use it
       const finalUrl = envUrl.endsWith('/api') ? envUrl : `${envUrl}/api`;
+      console.log('🔧 Using VITE_API_URL:', finalUrl);
       return finalUrl;
     }
     
@@ -13,18 +14,26 @@ export const config = {
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
       const protocol = window.location.protocol;
+      const port = window.location.port;
+      
+      console.log('🌐 Detected hostname:', hostname, 'protocol:', protocol, 'port:', port);
       
       // For localhost development, use direct backend port
       if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'http://localhost:5000/api';
+        const apiUrl = 'http://localhost:5000/api';
+        console.log('🏠 Using localhost backend:', apiUrl);
+        return apiUrl;
       }
       
-      // For public IP or domain, use the proxy path (assumes reverse proxy setup)
-      // If no reverse proxy, backend should be accessible on same host:5000
-      return `${protocol}//${hostname}:5000/api`;
+      // For public IP or domain, connect directly to backend port 5000
+      // This assumes the backend is running on the same host on port 5000
+      const apiUrl = `${protocol}//${hostname}:5000/api`;
+      console.log('🌍 Using public IP backend:', apiUrl);
+      return apiUrl;
     }
     
     // Fallback for server-side rendering or build time
+    console.log('⚠️ Using fallback API URL: /api');
     return '/api';
   })(),
   apiTimeout: parseInt((import.meta as any).env?.VITE_API_TIMEOUT || '10000'),
