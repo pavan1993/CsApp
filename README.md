@@ -137,7 +137,7 @@ docker-compose exec frontend sh
 
 **Service URLs (Development):**
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
+- Backend API: http://localhost:3001/api
 - Database: localhost:5432
 - Redis: localhost:6379
 
