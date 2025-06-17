@@ -675,6 +675,101 @@ router.get('/usage-correlation/:organization', async (req, res) => {
   }
 });
 
+// Get usage correlation analysis (alternative endpoint path)
+router.get('/usage/correlation', async (req, res) => {
+  try {
+    const { organization } = req.query;
+
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization query parameter is required',
+      });
+      return;
+    }
+
+    const correlations = await analyticsService.getUsageCorrelation(
+      decodeURIComponent(organization as string)
+    );
+
+    // Calculate summary metrics
+    const highRiskAreas = correlations.filter(c => c.riskLevel === 'HIGH' || c.riskLevel === 'CRITICAL');
+    const averageCorrelationScore = correlations.reduce((sum, c) => sum + c.correlationScore, 0) / correlations.length;
+    const totalTickets = correlations.reduce((sum, c) => sum + c.ticketCount, 0);
+    const totalCurrentUsage = correlations.reduce((sum, c) => sum + c.currentUsage, 0);
+
+    res.json({
+      success: true,
+      data: {
+        organization: decodeURIComponent(organization as string),
+        summary: {
+          totalProductAreas: correlations.length,
+          highRiskAreas: highRiskAreas.length,
+          averageCorrelationScore: Math.round(averageCorrelationScore * 100) / 100,
+          totalTickets,
+          totalCurrentUsage,
+        },
+        correlations,
+        highRiskAreas,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching usage correlation:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch usage correlation',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+
+// Get last upload date for an organization
+router.get('/last-upload-date', async (req, res) => {
+  try {
+    const { organization } = req.query;
+
+    if (!organization) {
+      res.status(400).json({
+        success: false,
+        message: 'Organization query parameter is required',
+      });
+      return;
+    }
+
+    const orgName = decodeURIComponent(organization as string);
+
+    // Get last ticket upload
+    const lastTicketUpload = await prisma.supportTicket.findFirst({
+      where: { organization: orgName },
+      orderBy: { requested: 'desc' },
+      select: { requested: true }
+    });
+
+    // Get last usage upload
+    const lastUsageUpload = await prisma.dynatraceUsage.findFirst({
+      where: { organization: orgName },
+      orderBy: { uploadDate: 'desc' },
+      select: { uploadDate: true }
+    });
+
+    res.json({
+      success: true,
+      data: {
+        tickets: lastTicketUpload?.requested?.toISOString() || null,
+        usage: lastUsageUpload?.uploadDate?.toISOString() || null,
+        organization: orgName
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching last upload date:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch last upload date',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
 
 // Get historical trend analysis
 router.get('/trends/:organization', async (req, res) => {
