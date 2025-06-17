@@ -12,15 +12,16 @@ export const config = {
     // Check if we're running in a browser and can detect the current host
     if (typeof window !== 'undefined') {
       const hostname = window.location.hostname;
+      const protocol = window.location.protocol;
       
       // For localhost development, use direct backend port
       if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return 'http://localhost:5000/api';
       }
       
-      // For production deployment (public IP or domain), use nginx proxy
-      // This assumes nginx is configured to proxy /api requests to the backend
-      return '/api';
+      // For public IP or domain, connect directly to backend port 5000
+      // This assumes the backend is running on the same host on port 5000
+      return `${protocol}//${hostname}:5000/api`;
     }
     
     // Fallback for server-side rendering or build time
