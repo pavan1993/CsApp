@@ -29,11 +29,11 @@ services:
     environment:
       NODE_ENV: development
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/customer_success_db?schema=public
-      PORT: 5000
+      PORT: 3001
       JWT_SECRET: dev-jwt-secret-change-in-production
       CORS_ORIGIN: http://localhost:3000
     ports:
-      - "5000:3001"
+      - "3001:3001"
     volumes:
       - ./backend/src:/app/src
       - ./backend/prisma:/app/prisma
@@ -58,7 +58,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: customer-success-frontend
     environment:
-      VITE_API_URL: http://localhost:5000/api
+      VITE_API_URL: http://localhost:3001/api
     ports:
       - "3000:3000"
     depends_on:
