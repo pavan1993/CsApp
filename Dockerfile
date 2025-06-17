@@ -1,10 +1,14 @@
-# Use Alpine Linux for smaller image size and consistent musl libc
-FROM node:18-alpine AS base
+# Use Ubuntu-based Node.js image for compatibility with Ubuntu deployment
+FROM node:18-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
 # Install necessary packages for Prisma and build tools
-RUN apk add --no-cache libc6-compat openssl curl
+RUN apt-get update && apt-get install -y \
+    openssl \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 # Copy package files from backend directory
@@ -14,8 +18,8 @@ COPY backend/prisma ./prisma/
 # Install dependencies
 RUN npm ci --include=dev && npm cache clean --force
 
-# Generate Prisma client for Alpine Linux (musl)
-ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+# Generate Prisma client for Debian/Ubuntu (glibc)
+ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
 RUN npx prisma generate
 
 # Build stage
@@ -23,7 +27,10 @@ FROM base AS builder
 WORKDIR /app
 
 # Install build dependencies
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package files and dependencies
 COPY backend/package*.json ./
@@ -33,8 +40,8 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy source code from backend directory
 COPY backend/ .
 
-# Set Prisma binary target for Alpine Linux
-ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+# Set Prisma binary target for Debian/Ubuntu
+ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
 
 # Generate Prisma client again in build stage
 RUN npx prisma generate
@@ -47,7 +54,11 @@ FROM base AS runner
 WORKDIR /app
 
 # Install runtime dependencies
-RUN apk add --no-cache curl openssl
+RUN apt-get update && apt-get install -y \
+    curl \
+    openssl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -55,7 +66,7 @@ RUN adduser --system --uid 1001 nodejs
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PRISMA_CLI_BINARY_TARGETS=linux-musl-openssl-3.0.x
+ENV PRISMA_CLI_BINARY_TARGETS=debian-openssl-3.0.x
 
 # Copy built application
 COPY --from=builder --chown=nodejs:nodejs /app ./
