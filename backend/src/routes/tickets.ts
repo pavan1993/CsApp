@@ -45,7 +45,7 @@ interface TicketCSVRow {
   Severity?: string; // Keep both for backward compatibility
 }
 
-// Helper function to parse date in MM/DD/YYYY HH:MM format
+// Helper function to parse date in MM/DD/YYYY HH:MM or YYYY-MM-DD HH:MM format
 function parseDate(dateString: string): Date {
   if (!dateString || typeof dateString !== 'string') {
     throw new Error('Invalid date string');
@@ -57,20 +57,43 @@ function parseDate(dateString: string): Date {
     throw new Error('Invalid date format');
   }
   
-  const [month, day, year] = datePart.split('/');
   const [hours, minutes] = timePart ? timePart.split(':') : ['00', '00'];
   
-  if (!month || !day || !year) {
+  // Check if date is in YYYY-MM-DD format (contains hyphens)
+  if (datePart.includes('-')) {
+    const [year, month, day] = datePart.split('-');
+    
+    if (!year || !month || !day) {
+      throw new Error('Invalid date format');
+    }
+    
+    return new Date(
+      parseInt(year, 10),
+      parseInt(month, 10) - 1, // Month is 0-indexed
+      parseInt(day, 10),
+      parseInt(hours || '0', 10),
+      parseInt(minutes || '0', 10)
+    );
+  }
+  // Otherwise assume MM/DD/YYYY format (contains slashes)
+  else if (datePart.includes('/')) {
+    const [month, day, year] = datePart.split('/');
+    
+    if (!month || !day || !year) {
+      throw new Error('Invalid date format');
+    }
+    
+    return new Date(
+      parseInt(year, 10),
+      parseInt(month, 10) - 1, // Month is 0-indexed
+      parseInt(day, 10),
+      parseInt(hours || '0', 10),
+      parseInt(minutes || '0', 10)
+    );
+  }
+  else {
     throw new Error('Invalid date format');
   }
-  
-  return new Date(
-    parseInt(year, 10),
-    parseInt(month, 10) - 1, // Month is 0-indexed
-    parseInt(day, 10),
-    parseInt(hours || '0', 10),
-    parseInt(minutes || '0', 10)
-  );
 }
 
 // Helper function to map severity string to enum
@@ -106,13 +129,13 @@ function validateTicketRow(row: TicketCSVRow): string[] {
   try {
     parseDate(row.Requested);
   } catch (error) {
-    errors.push('Invalid Requested date format. Expected MM/DD/YYYY HH:MM');
+    errors.push('Invalid Requested date format. Expected MM/DD/YYYY HH:MM or YYYY-MM-DD HH:MM');
   }
   
   try {
     parseDate(row.Updated);
   } catch (error) {
-    errors.push('Invalid Updated date format. Expected MM/DD/YYYY HH:MM');
+    errors.push('Invalid Updated date format. Expected MM/DD/YYYY HH:MM or YYYY-MM-DD HH:MM');
   }
   
   return errors;
